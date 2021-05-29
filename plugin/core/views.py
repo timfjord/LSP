@@ -619,6 +619,17 @@ def diagnostic_source(diagnostic: Diagnostic) -> str:
     return diagnostic.get("source", "unknown-source")
 
 
+def format_diagnostic_for_annotation(diagnostic: Diagnostic) -> str:
+    diagnostic_message = text2html(diagnostic.get('message') or '')
+    if diagnostic.get('source'):
+        content = "[{}] {}".format(diagnostic.get('source'), diagnostic_message)
+    else:
+        content = diagnostic_message
+    return '<body id="annotation"><style>{0}</style><div class="{1}"><div class="{2}">{3}</div></div></body>'.format(
+        lsp_css().annotations, lsp_css().annotations_classname,
+        DIAGNOSTIC_SEVERITY[diagnostic_severity(diagnostic) - 1][1], content)
+
+
 def format_diagnostic_for_panel(diagnostic: Diagnostic) -> Tuple[str, Optional[int], Optional[str], Optional[str]]:
     """
     Turn an LSP diagnostic into a string suitable for an output panel.

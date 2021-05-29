@@ -7,6 +7,7 @@ from .core.settings import userprefs
 from .core.types import debounced
 from .core.typing import Any, Iterable, List, Tuple, Optional, Dict
 from .core.views import DIAGNOSTIC_SEVERITY
+from .core.views import format_diagnostic_for_annotation
 from .core.windows import AbstractViewListener
 from .session_buffer import SessionBuffer
 from weakref import ref
@@ -199,10 +200,16 @@ class SessionView:
                     tag_scope = self.diagnostics_tag_scope(tag)
                     # Trick to only add tag regions if there is a corresponding color scheme scope defined.
                     if tag_scope and 'background' in self.view.style_for_scope(tag_scope):
-                        self.view.add_regions(key_tags[tag], regions, tag_scope, flags=sublime.DRAW_NO_OUTLINE)
+                        annotations = [format_diagnostic_for_annotation(diag) for diag in data.tag_diagnostics]
+                        annotation_color = self.view.style_for_scope(tag_scope)['foreground']
+                        self.view.add_regions(key_tags[tag], regions, tag_scope, flags=sublime.DRAW_NO_OUTLINE,
+                                              annotations=annotations, annotation_color=annotation_color)
                     else:
                         non_tag_regions.extend(regions)
-                self.view.add_regions(key, non_tag_regions, data.scope, data.icon, flags | sublime.DRAW_EMPTY)
+                annotations = [format_diagnostic_for_annotation(diag) for diag in data.region_diagnostics]
+                annotation_color = self.view.style_for_scope(data.scope)['foreground']
+                self.view.add_regions(key, non_tag_regions, data.scope, data.icon, flags | sublime.DRAW_EMPTY,
+                                      annotations, annotation_color)
             else:
                 self.view.erase_regions(key)
         listener = self.listener()
