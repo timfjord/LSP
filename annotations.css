@@ -3,18 +3,18 @@
     border-width: 0;
 }
 .lsp_annotation .errors {
-    background-color: color(var(--redish) alpha(0.25));
-    color: var(--foreground);
+    /*background-color: var(--redish);*/
+    color: var(--redish);
 }
 .lsp_annotation .warnings {
-    background-color: color(var(--yellowish) alpha(0.25));
-    color: var(--foreground);
+    /*background-color: color(var(--yellowish) alpha(0.25));*/
+    color: var(--yellowish);
 }
 .lsp_annotation .info {
-    background-color: color(var(--bluish) alpha(0.25));
-    color: var(--foreground);
+    /*background-color: color(var(--bluish) alpha(0.25));*/
+    color: var(--bluish);
 }
 .lsp_annotation .hints {
-    background-color: color(var(--bluish) alpha(0.25));
-    color: var(--foreground);
+    /*background-color: color(var(--bluish) alpha(0.25));*/
+    color: var(--bluish);
 }
