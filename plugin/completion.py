@@ -1,14 +1,24 @@
-import sublime
-import webbrowser
-from .core.logging import debug
 from .core.edit import parse_text_edit
-from .core.protocol import Request, InsertTextFormat, Range, CompletionItem
+from .core.logging import debug
+from .core.protocol import CompletionItem
+from .core.protocol import InsertTextFormat
+from .core.protocol import Range
+from .core.protocol import Request
 from .core.registry import LspTextCommand
-from .core.typing import List, Dict, Optional, Generator, Union
-from .core.views import FORMAT_STRING, FORMAT_MARKUP_CONTENT, minihtml
+from .core.typing import Dict
+from .core.typing import Generator
+from .core.typing import List
+from .core.typing import Optional
+from .core.typing import Union
+from .core.views import FORMAT_MARKUP_CONTENT
+from .core.views import FORMAT_STRING
+from .core.views import minihtml
 from .core.views import range_to_region
 from .core.views import show_lsp_popup
 from .core.views import update_lsp_popup
+
+import sublime
+import webbrowser
 
 SessionName = str
 
@@ -18,7 +28,6 @@ class LspResolveDocsCommand(LspTextCommand):
     completions = {}  # type: Dict[SessionName, List[CompletionItem]]
 
     def run(self, edit: sublime.Edit, index: int, session_name: str, event: Optional[dict] = None) -> None:
-
         def run_async() -> None:
             item = self.completions[session_name][index]
             session = self.session_by_name(session_name, 'completionProvider.resolveProvider')
@@ -58,7 +67,8 @@ class LspResolveDocsCommand(LspTextCommand):
                     minihtml_content,
                     flags=sublime.COOPERATE_WITH_AUTO_COMPLETE,
                     md=True,
-                    on_navigate=self._on_navigate)
+                    on_navigate=self._on_navigate,
+                )
 
         sublime.set_timeout(run_main)
 
@@ -124,6 +134,6 @@ class LspSelectCompletionItemCommand(LspTextCommand):
             args = {
                 "command_name": command["command"],
                 "command_args": command.get("arguments"),
-                "session_name": session_name
+                "session_name": session_name,
             }
             self.view.run_command("lsp_execute", args)

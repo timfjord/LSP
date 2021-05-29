@@ -3,11 +3,15 @@ from .core.protocol import LocationLink
 from .core.protocol import Request
 from .core.registry import get_position
 from .core.registry import LspTextCommand
-from .core.sessions import Session, method_to_capability
-from .core.typing import List, Optional, Union
+from .core.sessions import method_to_capability
+from .core.sessions import Session
+from .core.typing import List
+from .core.typing import Optional
+from .core.typing import Union
 from .core.views import text_document_position_params
 from .locationpicker import LocationPicker
 from .locationpicker import open_location_async
+
 import functools
 import sublime
 
@@ -16,15 +20,13 @@ class LspGotoCommand(LspTextCommand):
 
     method = ''
 
-    def is_enabled(self, event: Optional[dict] = None, point: Optional[int] = None, side_by_side: bool = False) -> bool:
+    def is_enabled(
+        self, event: Optional[dict] = None, point: Optional[int] = None, side_by_side: bool = False
+    ) -> bool:
         return super().is_enabled(event, point)
 
     def run(
-        self,
-        _: sublime.Edit,
-        event: Optional[dict] = None,
-        point: Optional[int] = None,
-        side_by_side: bool = False
+        self, _: sublime.Edit, event: Optional[dict] = None, point: Optional[int] = None, side_by_side: bool = False
     ) -> None:
         session = self.best_session(self.capability)
         position = get_position(self.view, event, point)
@@ -34,10 +36,7 @@ class LspGotoCommand(LspTextCommand):
             session.send_request(request, functools.partial(self._handle_response_async, session, side_by_side))
 
     def _handle_response_async(
-        self,
-        session: Session,
-        side_by_side: bool,
-        response: Union[None, Location, List[Location], List[LocationLink]]
+        self, session: Session, side_by_side: bool, response: Union[None, Location, List[Location], List[LocationLink]]
     ) -> None:
         if isinstance(response, dict):
             self.view.run_command("add_jump_record", {"selection": [(r.a, r.b) for r in self.view.sel()]})

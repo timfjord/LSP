@@ -3,12 +3,12 @@ from LSP.plugin.core.configurations import WindowConfigManager
 from test_mocks import DISABLED_CONFIG
 from test_mocks import TEST_CONFIG
 from unittest.mock import MagicMock
+
 import sublime
 import unittest
 
 
 class GlobalConfigManagerTests(unittest.TestCase):
-
     def test_empty_configs(self):
         manager = ConfigManager({})
         window_mgr = manager.for_window(sublime.active_window())
@@ -29,7 +29,6 @@ class GlobalConfigManagerTests(unittest.TestCase):
 
 
 class WindowConfigManagerTests(unittest.TestCase):
-
     def test_no_configs(self):
         view = sublime.active_window().active_view()
         manager = WindowConfigManager(sublime.active_window(), {})
@@ -39,12 +38,11 @@ class WindowConfigManagerTests(unittest.TestCase):
         window = sublime.active_window()
         view = window.active_view()
         manager = WindowConfigManager(window, {TEST_CONFIG.name: TEST_CONFIG})
-        view.syntax = MagicMock(return_value=sublime.Syntax(
-            path="Packages/Text/Plain text.tmLanguage",
-            name="Plain Text",
-            scope="text.plain",
-            hidden=False
-        ))
+        view.syntax = MagicMock(
+            return_value=sublime.Syntax(
+                path="Packages/Text/Plain text.tmLanguage", name="Plain Text", scope="text.plain", hidden=False
+            )
+        )
         self.assertTrue(manager.is_supported(view))
         self.assertEqual(list(manager.match_view(view)), [TEST_CONFIG])
 
@@ -52,22 +50,13 @@ class WindowConfigManagerTests(unittest.TestCase):
         window = sublime.active_window()
         view = window.active_view()
         assert view
-        window.project_data = MagicMock(return_value={
-            "settings": {
-                "LSP": {
-                    "test": {
-                        "enabled": True
-                    }
-                }
-            }
-        })
+        window.project_data = MagicMock(return_value={"settings": {"LSP": {"test": {"enabled": True}}}})
         manager = WindowConfigManager(window, {DISABLED_CONFIG.name: DISABLED_CONFIG})
-        view.syntax = MagicMock(return_value=sublime.Syntax(
-            path="Packages/Text/Plain text.tmLanguage",
-            name="Plain Text",
-            scope="text.plain",
-            hidden=False
-        ))
+        view.syntax = MagicMock(
+            return_value=sublime.Syntax(
+                path="Packages/Text/Plain text.tmLanguage", name="Plain Text", scope="text.plain", hidden=False
+            )
+        )
         configs = list(manager.match_view(view))
         self.assertEqual(len(configs), 1)
         config = configs[0]
@@ -77,15 +66,7 @@ class WindowConfigManagerTests(unittest.TestCase):
     def test_disables_temporarily(self):
         window = sublime.active_window()
         view = window.active_view()
-        window.project_data = MagicMock(return_value={
-            "settings": {
-                "LSP": {
-                    "test": {
-                        "enabled": True
-                    }
-                }
-            }
-        })
+        window.project_data = MagicMock(return_value={"settings": {"LSP": {"test": {"enabled": True}}}})
 
         manager = WindowConfigManager(window, {DISABLED_CONFIG.name: DISABLED_CONFIG})
         # disables config in-memory

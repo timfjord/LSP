@@ -6,7 +6,8 @@ from .logging import debug
 from .logging import exception_log
 from .message_request_handler import MessageRequestHandler
 from .panels import log_server_message
-from .protocol import CodeLens, Diagnostic
+from .protocol import CodeLens
+from .protocol import Diagnostic
 from .protocol import Error
 from .sessions import get_plugin
 from .sessions import Logger
@@ -17,7 +18,16 @@ from .sessions import SessionViewProtocol
 from .settings import userprefs
 from .transports import create_transport
 from .types import ClientConfig
-from .typing import Optional, Any, Dict, Deque, List, Generator, Tuple, Iterable, Sequence, Union
+from .typing import Any
+from .typing import Deque
+from .typing import Dict
+from .typing import Generator
+from .typing import Iterable
+from .typing import List
+from .typing import Optional
+from .typing import Sequence
+from .typing import Tuple
+from .typing import Union
 from .views import extract_variables
 from .views import make_link
 from .workspace import ProjectFolders
@@ -29,12 +39,12 @@ from subprocess import CalledProcessError
 from time import time
 from weakref import ref
 from weakref import WeakSet
+
 import functools
 import json
 import os
 import sublime
 import threading
-
 
 _NO_DIAGNOSTICS_PLACEHOLDER = "  No diagnostics. Well done!"
 
@@ -63,21 +73,18 @@ class AbstractViewListener(metaclass=ABCMeta):
 
     @abstractmethod
     def diagnostics_intersecting_region_async(
-        self,
-        region: sublime.Region
+        self, region: sublime.Region
     ) -> Tuple[Sequence[Tuple[SessionBufferProtocol, Sequence[Diagnostic]]], sublime.Region]:
         raise NotImplementedError()
 
     @abstractmethod
     def diagnostics_touching_point_async(
-        self,
-        pt: int
+        self, pt: int
     ) -> Tuple[Sequence[Tuple[SessionBufferProtocol, Sequence[Diagnostic]]], sublime.Region]:
         raise NotImplementedError()
 
     def diagnostics_intersecting_async(
-        self,
-        region_or_point: Union[sublime.Region, int]
+        self, region_or_point: Union[sublime.Region, int]
     ) -> Tuple[Sequence[Tuple[SessionBufferProtocol, Sequence[Diagnostic]]], sublime.Region]:
         if isinstance(region_or_point, int):
             return self.diagnostics_touching_point_async(region_or_point)
@@ -87,7 +94,9 @@ class AbstractViewListener(metaclass=ABCMeta):
             return self.diagnostics_intersecting_region_async(region_or_point)
 
     @abstractmethod
-    def diagnostics_panel_contribution_async(self) -> Sequence[Tuple[str, Optional[int], Optional[str], Optional[str]]]:
+    def diagnostics_panel_contribution_async(
+        self,
+    ) -> Sequence[Tuple[str, Optional[int], Optional[str], Optional[str]]]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -327,15 +336,19 @@ class WindowManager(Manager):
                 plugin_class.on_post_start(self._window, initiating_view, workspace_folders, config)
             config.set_view_status(initiating_view, "initialize")
             session.initialize_async(
-                variables, transport,
-                lambda session, is_error: self._on_post_session_initialize(initiating_view, session, is_error))
+                variables,
+                transport,
+                lambda session, is_error: self._on_post_session_initialize(initiating_view, session, is_error),
+            )
             self._new_session = session
         except Exception as e:
-            message = "".join((
-                "Failed to start {0} - disabling for this window for the duration of the current session.\n",
-                "Re-enable by running \"LSP: Enable Language Server In Project\" from the Command Palette.",
-                "\n\n--- Error: ---\n{1}"
-            )).format(config.name, str(e))
+            message = "".join(
+                (
+                    "Failed to start {0} - disabling for this window for the duration of the current session.\n",
+                    "Re-enable by running \"LSP: Enable Language Server In Project\" from the Command Palette.",
+                    "\n\n--- Error: ---\n{1}",
+                )
+            ).format(config.name, str(e))
             exception_log("Unable to start subprocess for {}".format(config.name), e)
             if isinstance(e, CalledProcessError):
                 print("Server output:\n{}".format(e.output.decode('utf-8', 'replace')))
@@ -415,12 +428,14 @@ class WindowManager(Manager):
             listener.on_session_shutdown_async(session)
         if exit_code != 0 or exception:
             config = session.config
-            msg = "".join((
-                "{0} exited with status code {1}. ",
-                "Do you want to restart it? If you choose Cancel, it will be disabled for this window for the ",
-                "duration of the current session. ",
-                "Re-enable by running \"LSP: Enable Language Server In Project\" from the Command Palette."
-            )).format(config.name, exit_code)
+            msg = "".join(
+                (
+                    "{0} exited with status code {1}. ",
+                    "Do you want to restart it? If you choose Cancel, it will be disabled for this window for the ",
+                    "duration of the current session. ",
+                    "Re-enable by running \"LSP: Enable Language Server In Project\" from the Command Palette.",
+                )
+            ).format(config.name, exit_code)
             if exception:
                 msg += "\n\n--- Error: ---\n{}".format(str(exception))
             if sublime.ok_cancel_dialog(msg, "Restart {}".format(config.name)):
@@ -482,8 +497,9 @@ class WindowManager(Manager):
             characters = _NO_DIAGNOSTICS_PLACEHOLDER
         sublime.set_timeout(functools.partial(self._update_panel_main_thread, base_dir, characters, prephantoms))
 
-    def _update_panel_main_thread(self, base_dir: Optional[str], characters: str,
-                                  prephantoms: List[Tuple[int, int, str, str]]) -> None:
+    def _update_panel_main_thread(
+        self, base_dir: Optional[str], characters: str, prephantoms: List[Tuple[int, int, str, str]]
+    ) -> None:
         panel = ensure_diagnostics_panel(self._window)
         if not panel or not panel.is_valid():
             return
@@ -532,7 +548,6 @@ class WindowRegistry(object):
 
 
 class PanelLogger(Logger):
-
     def __init__(self, manager: WindowManager, server_name: str) -> None:
         self._manager = ref(manager)
         self._server_name = server_name
@@ -545,7 +560,6 @@ class PanelLogger(Logger):
         pass
 
     def log(self, message: str, params: Any) -> None:
-
         def run_on_async_worker_thread() -> None:
             nonlocal message
             params_str = str(params)
@@ -634,6 +648,7 @@ class RemoteLogger(Logger):
         def start_async() -> None:
             if RemoteLogger._ws_server:
                 RemoteLogger._ws_server.run_forever()
+
         RemoteLogger._ws_server_thread = threading.Thread(target=start_async)
         RemoteLogger._ws_server_thread.start()
 
@@ -659,82 +674,98 @@ class RemoteLogger(Logger):
         debug("Client(%d) said: %s" % (client['id'], message))
 
     def stderr_message(self, message: str) -> None:
-        self._broadcast_json({
-            'server': self._server_name,
-            'time': round(time() * 1000),
-            'method': 'stderr',
-            'params': message,
-            'isError': True,
-            'direction': self.DIRECTION_INCOMING,
-        })
+        self._broadcast_json(
+            {
+                'server': self._server_name,
+                'time': round(time() * 1000),
+                'method': 'stderr',
+                'params': message,
+                'isError': True,
+                'direction': self.DIRECTION_INCOMING,
+            }
+        )
 
     def outgoing_request(self, request_id: int, method: str, params: Any) -> None:
-        self._broadcast_json({
-            'server': self._server_name,
-            'id': request_id,
-            'time': round(time() * 1000),
-            'method': method,
-            'params': params,
-            'direction': self.DIRECTION_OUTGOING,
-        })
+        self._broadcast_json(
+            {
+                'server': self._server_name,
+                'id': request_id,
+                'time': round(time() * 1000),
+                'method': method,
+                'params': params,
+                'direction': self.DIRECTION_OUTGOING,
+            }
+        )
 
     def incoming_response(self, request_id: int, params: Any, is_error: bool) -> None:
-        self._broadcast_json({
-            'server': self._server_name,
-            'id': request_id,
-            'time': round(time() * 1000),
-            'params': params,
-            'direction': self.DIRECTION_INCOMING,
-            'isError': is_error,
-        })
+        self._broadcast_json(
+            {
+                'server': self._server_name,
+                'id': request_id,
+                'time': round(time() * 1000),
+                'params': params,
+                'direction': self.DIRECTION_INCOMING,
+                'isError': is_error,
+            }
+        )
 
     def incoming_request(self, request_id: Any, method: str, params: Any) -> None:
-        self._broadcast_json({
-            'server': self._server_name,
-            'id': request_id,
-            'time': round(time() * 1000),
-            'method': method,
-            'params': params,
-            'direction': self.DIRECTION_INCOMING,
-        })
+        self._broadcast_json(
+            {
+                'server': self._server_name,
+                'id': request_id,
+                'time': round(time() * 1000),
+                'method': method,
+                'params': params,
+                'direction': self.DIRECTION_INCOMING,
+            }
+        )
 
     def outgoing_response(self, request_id: Any, params: Any) -> None:
-        self._broadcast_json({
-            'server': self._server_name,
-            'id': request_id,
-            'time': round(time() * 1000),
-            'params': params,
-            'direction': self.DIRECTION_OUTGOING,
-        })
+        self._broadcast_json(
+            {
+                'server': self._server_name,
+                'id': request_id,
+                'time': round(time() * 1000),
+                'params': params,
+                'direction': self.DIRECTION_OUTGOING,
+            }
+        )
 
     def outgoing_error_response(self, request_id: Any, error: Error) -> None:
-        self._broadcast_json({
-            'server': self._server_name,
-            'id': request_id,
-            'isError': True,
-            'params': error.to_lsp(),
-            'time': round(time() * 1000),
-            'direction': self.DIRECTION_OUTGOING,
-        })
+        self._broadcast_json(
+            {
+                'server': self._server_name,
+                'id': request_id,
+                'isError': True,
+                'params': error.to_lsp(),
+                'time': round(time() * 1000),
+                'direction': self.DIRECTION_OUTGOING,
+            }
+        )
 
     def outgoing_notification(self, method: str, params: Any) -> None:
-        self._broadcast_json({
-            'server': self._server_name,
-            'time': round(time() * 1000),
-            'method': method,
-            'params': params,
-            'direction': self.DIRECTION_OUTGOING,
-        })
+        self._broadcast_json(
+            {
+                'server': self._server_name,
+                'time': round(time() * 1000),
+                'method': method,
+                'params': params,
+                'direction': self.DIRECTION_OUTGOING,
+            }
+        )
 
     def incoming_notification(self, method: str, params: Any, unhandled: bool) -> None:
-        self._broadcast_json({
-            'server': self._server_name,
-            'time': round(time() * 1000),
-            'error': 'Unhandled notification!' if unhandled else None,
-            'method': method,
-            'params': params,
-            'direction': self.DIRECTION_INCOMING,
-        })
+        self._broadcast_json(
+            {
+                'server': self._server_name,
+                'time': round(time() * 1000),
+                'error': 'Unhandled notification!' if unhandled else None,
+                'method': method,
+                'params': params,
+                'direction': self.DIRECTION_INCOMING,
+            }
+        )
 
     def _broadcast_json(self, data: Dict[str, Any]) -> None:
         if RemoteLogger._ws_server:

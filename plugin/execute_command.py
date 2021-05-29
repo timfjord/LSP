@@ -1,21 +1,28 @@
-import sublime
 from .core.protocol import Error
 from .core.protocol import ExecuteCommandParams
 from .core.registry import LspTextCommand
 from .core.registry import windows
-from .core.typing import List, Optional, Any
+from .core.typing import Any
+from .core.typing import List
+from .core.typing import Optional
 from .core.views import first_selection_region
-from .core.views import uri_from_view, offset_to_point, region_to_range, text_document_identifier
+from .core.views import offset_to_point
+from .core.views import region_to_range
+from .core.views import text_document_identifier
+from .core.views import uri_from_view
+
+import sublime
 
 
 class LspExecuteCommand(LspTextCommand):
-
-    def run(self,
-            edit: sublime.Edit,
-            command_name: Optional[str] = None,
-            command_args: Optional[List[Any]] = None,
-            session_name: Optional[str] = None,
-            event: Optional[dict] = None) -> None:
+    def run(
+        self,
+        edit: sublime.Edit,
+        command_name: Optional[str] = None,
+        command_args: Optional[List[Any]] = None,
+        session_name: Optional[str] = None,
+        event: Optional[dict] = None,
+    ) -> None:
         # Handle VSCode-specific command for triggering AC/sighelp
         if command_name == "editor.action.triggerSuggest":
             # Triggered from set_timeout as suggestions popup doesn't trigger otherwise.

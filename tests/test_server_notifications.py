@@ -4,11 +4,11 @@ from LSP.plugin.core.protocol import PublishDiagnosticsParams
 from LSP.plugin.core.typing import Generator
 from LSP.plugin.core.url import filename_to_uri
 from setup import TextDocumentTestCase
+
 import sublime
 
 
 class ServerNotifications(TextDocumentTestCase):
-
     def test_publish_diagnostics(self) -> Generator:
         self.insert_characters("a b c\n")
         params = {
@@ -18,22 +18,22 @@ class ServerNotifications(TextDocumentTestCase):
                     'message': "foo",
                     'severity': DiagnosticSeverity.Error,
                     'source': 'qux',
-                    'range': {'end': {'character': 1, 'line': 0}, 'start': {'character': 0, 'line': 0}}
+                    'range': {'end': {'character': 1, 'line': 0}, 'start': {'character': 0, 'line': 0}},
                 },
                 {
                     'message': 'bar',
                     'severity': DiagnosticSeverity.Warning,
                     'source': 'qux',
-                    'range': {'end': {'character': 3, 'line': 0}, 'start': {'character': 2, 'line': 0}}
+                    'range': {'end': {'character': 3, 'line': 0}, 'start': {'character': 2, 'line': 0}},
                 },
                 {
                     'message': "baz",
                     'severity': DiagnosticSeverity.Information,
                     'source': 'qux',
                     'range': {'end': {'character': 5, 'line': 0}, 'start': {'character': 4, 'line': 0}},
-                    'tags': [DiagnosticTag.Unnecessary]
-                }
-            ]
+                    'tags': [DiagnosticTag.Unnecessary],
+                },
+            ],
         }  # type: PublishDiagnosticsParams
         yield from self.await_client_notification("textDocument/publishDiagnostics", params)
         yield lambda: len(self.view.get_regions("lspTESTd1")) > 0

@@ -1,8 +1,15 @@
-from .typing import Any, Dict, Iterable, List, Mapping, Optional, TypedDict, Union
+from .typing import Any
+from .typing import Dict
+from .typing import Iterable
+from .typing import List
+from .typing import Mapping
+from .typing import Optional
+from .typing import TypedDict
+from .typing import Union
 from .url import filename_to_uri
+
 import os
 import sublime
-
 
 TextDocumentSyncKindNone = 0
 TextDocumentSyncKindFull = 1
@@ -53,165 +60,196 @@ class InsertTextMode:
 
 DocumentUri = str
 
-Position = TypedDict('Position', {
-    'line': int,
-    'character': int
-})
+Position = TypedDict('Position', {'line': int, 'character': int})
 
-RangeLsp = TypedDict('RangeLsp', {
-    'start': Position,
-    'end': Position
-})
+RangeLsp = TypedDict('RangeLsp', {'start': Position, 'end': Position})
 
-CodeDescription = TypedDict('CodeDescription', {
-    'href': str
-}, total=True)
+CodeDescription = TypedDict('CodeDescription', {'href': str}, total=True)
 
 
-ExecuteCommandParams = TypedDict('ExecuteCommandParams', {
-    'command': str,
-    'arguments': Optional[List[Any]],
-}, total=False)
+ExecuteCommandParams = TypedDict(
+    'ExecuteCommandParams',
+    {
+        'command': str,
+        'arguments': Optional[List[Any]],
+    },
+    total=False,
+)
 
 
-Command = TypedDict('Command', {
-    'title': str,
-    'command': str,
-    'arguments': Optional[List[Any]],
-}, total=True)
+Command = TypedDict(
+    'Command',
+    {
+        'title': str,
+        'command': str,
+        'arguments': Optional[List[Any]],
+    },
+    total=True,
+)
 
 
-CodeAction = TypedDict('CodeAction', {
-    'title': str,
-    'kind': Optional[str],
-    'diagnostics': Optional[List[Any]],
-    'isPreferred': Optional[bool],
-    'edit': Optional[dict],
-    'command': Optional[Command],
-}, total=True)
+CodeAction = TypedDict(
+    'CodeAction',
+    {
+        'title': str,
+        'kind': Optional[str],
+        'diagnostics': Optional[List[Any]],
+        'isPreferred': Optional[bool],
+        'edit': Optional[dict],
+        'command': Optional[Command],
+    },
+    total=True,
+)
 
 
-CodeLens = TypedDict('CodeLens', {
-    'range': RangeLsp,
-    'command': Optional[Command],
-    'data': Any,
-    # Custom property to bring along the name of the session
-    'session_name': Optional[str]
-}, total=True)
+CodeLens = TypedDict(
+    'CodeLens',
+    {
+        'range': RangeLsp,
+        'command': Optional[Command],
+        'data': Any,
+        # Custom property to bring along the name of the session
+        'session_name': Optional[str],
+    },
+    total=True,
+)
 
 
-ParameterInformation = TypedDict('ParameterInformation', {
-    'label': Union[str, List[int]],
-    'documentation': Union[str, Dict[str, str]]
-}, total=False)
+ParameterInformation = TypedDict(
+    'ParameterInformation', {'label': Union[str, List[int]], 'documentation': Union[str, Dict[str, str]]}, total=False
+)
 
 
-SignatureInformation = TypedDict('SignatureInformation', {
-    'label': str,
-    'documentation': Union[str, Dict[str, str]],
-    'parameters': List[ParameterInformation]
-}, total=False)
+SignatureInformation = TypedDict(
+    'SignatureInformation',
+    {'label': str, 'documentation': Union[str, Dict[str, str]], 'parameters': List[ParameterInformation]},
+    total=False,
+)
 
 
-SignatureHelp = TypedDict('SignatureHelp', {
-    'signatures': List[SignatureInformation],
-    'activeSignature': int,
-    'activeParameter': int,
-}, total=False)
+SignatureHelp = TypedDict(
+    'SignatureHelp',
+    {
+        'signatures': List[SignatureInformation],
+        'activeSignature': int,
+        'activeParameter': int,
+    },
+    total=False,
+)
 
 
-SignatureHelpContext = TypedDict('SignatureHelpContext', {
-    'triggerKind': int,
-    'triggerCharacter': str,
-    'isRetrigger': bool,
-    'activeSignatureHelp': SignatureHelp
-}, total=False)
+SignatureHelpContext = TypedDict(
+    'SignatureHelpContext',
+    {'triggerKind': int, 'triggerCharacter': str, 'isRetrigger': bool, 'activeSignatureHelp': SignatureHelp},
+    total=False,
+)
 
 
-Location = TypedDict('Location', {
-    'uri': DocumentUri,
-    'range': RangeLsp
-}, total=True)
+Location = TypedDict('Location', {'uri': DocumentUri, 'range': RangeLsp}, total=True)
 
-DocumentSymbol = TypedDict('DocumentSymbol', {
-    'name': str,
-    'detail': Optional[str],
-    'kind': int,
-    'tags': Optional[List[int]],
-    'deprecated': Optional[bool],
-    'range': RangeLsp,
-    'selectionRange': RangeLsp,
-    'children': Optional[List[Any]]  # mypy doesn't support recurive types like Optional[List['DocumentSymbol']]
-}, total=True)
+DocumentSymbol = TypedDict(
+    'DocumentSymbol',
+    {
+        'name': str,
+        'detail': Optional[str],
+        'kind': int,
+        'tags': Optional[List[int]],
+        'deprecated': Optional[bool],
+        'range': RangeLsp,
+        'selectionRange': RangeLsp,
+        'children': Optional[List[Any]],  # mypy doesn't support recurive types like Optional[List['DocumentSymbol']]
+    },
+    total=True,
+)
 
-SymbolInformation = TypedDict('SymbolInformation', {
-    'name': str,
-    'kind': int,
-    'tags': Optional[List[int]],
-    'deprecated': Optional[bool],
-    'location': Location,
-    'containerName': Optional[str]
-}, total=True)
+SymbolInformation = TypedDict(
+    'SymbolInformation',
+    {
+        'name': str,
+        'kind': int,
+        'tags': Optional[List[int]],
+        'deprecated': Optional[bool],
+        'location': Location,
+        'containerName': Optional[str],
+    },
+    total=True,
+)
 
-LocationLink = TypedDict('LocationLink', {
-    'originSelectionRange': Optional[RangeLsp],
-    'targetUri': DocumentUri,
-    'targetRange': RangeLsp,
-    'targetSelectionRange': RangeLsp
-}, total=False)
+LocationLink = TypedDict(
+    'LocationLink',
+    {
+        'originSelectionRange': Optional[RangeLsp],
+        'targetUri': DocumentUri,
+        'targetRange': RangeLsp,
+        'targetSelectionRange': RangeLsp,
+    },
+    total=False,
+)
 
-DiagnosticRelatedInformation = TypedDict('DiagnosticRelatedInformation', {
-    'location': Location,
-    'message': str
-}, total=False)
+DiagnosticRelatedInformation = TypedDict(
+    'DiagnosticRelatedInformation', {'location': Location, 'message': str}, total=False
+)
 
-Diagnostic = TypedDict('Diagnostic', {
-    'range': RangeLsp,
-    'severity': int,
-    'code': Union[int, str],
-    'codeDescription': CodeDescription,
-    'source': str,
-    'message': str,
-    'tags': List[int],
-    'relatedInformation': List[DiagnosticRelatedInformation]
-}, total=False)
+Diagnostic = TypedDict(
+    'Diagnostic',
+    {
+        'range': RangeLsp,
+        'severity': int,
+        'code': Union[int, str],
+        'codeDescription': CodeDescription,
+        'source': str,
+        'message': str,
+        'tags': List[int],
+        'relatedInformation': List[DiagnosticRelatedInformation],
+    },
+    total=False,
+)
 
-TextEdit = TypedDict('TextEdit', {
-    'newText': str,
-    'range': RangeLsp
-}, total=True)
+TextEdit = TypedDict('TextEdit', {'newText': str, 'range': RangeLsp}, total=True)
 
-CompletionItem = TypedDict('CompletionItem', {
-    'additionalTextEdits': List[TextEdit],
-    'command': Command,
-    'commitCharacters': List[str],
-    'data': Any,
-    'deprecated': bool,
-    'detail': str,
-    'documentation': Union[str, Dict[str, str]],
-    'filterText': str,
-    'insertText': str,
-    'insertTextFormat': InsertTextFormat,
-    'insertTextMode': InsertTextMode,
-    'kind': int,
-    'label': str,
-    'preselect': bool,
-    'sortText': str,
-    'tags': List[CompletionItemTag],
-    'textEdit': TextEdit
-}, total=False)
+CompletionItem = TypedDict(
+    'CompletionItem',
+    {
+        'additionalTextEdits': List[TextEdit],
+        'command': Command,
+        'commitCharacters': List[str],
+        'data': Any,
+        'deprecated': bool,
+        'detail': str,
+        'documentation': Union[str, Dict[str, str]],
+        'filterText': str,
+        'insertText': str,
+        'insertTextFormat': InsertTextFormat,
+        'insertTextMode': InsertTextMode,
+        'kind': int,
+        'label': str,
+        'preselect': bool,
+        'sortText': str,
+        'tags': List[CompletionItemTag],
+        'textEdit': TextEdit,
+    },
+    total=False,
+)
 
-CompletionList = TypedDict('CompletionList', {
-    'isIncomplete': bool,
-    'items': List[CompletionItem],
-}, total=True)
+CompletionList = TypedDict(
+    'CompletionList',
+    {
+        'isIncomplete': bool,
+        'items': List[CompletionItem],
+    },
+    total=True,
+)
 
 
-PublishDiagnosticsParams = TypedDict('PublishDiagnosticsParams', {
-    'uri': DocumentUri,
-    'version': Optional[int],
-    'diagnostics': List[Diagnostic],
-}, total=False)
+PublishDiagnosticsParams = TypedDict(
+    'PublishDiagnosticsParams',
+    {
+        'uri': DocumentUri,
+        'version': Optional[int],
+        'diagnostics': List[Diagnostic],
+    },
+    total=False,
+)
 
 
 class Request:
@@ -223,7 +261,7 @@ class Request:
         method: str,
         params: Optional[Mapping[str, Any]] = None,
         view: Optional[sublime.View] = None,
-        progress: bool = False
+        progress: bool = False,
     ) -> None:
         self.method = method
         self.params = params
@@ -274,12 +312,7 @@ class Request:
         return self.method + " " + str(self.params)
 
     def to_payload(self, id: int) -> Dict[str, Any]:
-        return {
-            "jsonrpc": "2.0",
-            "id": id,
-            "method": self.method,
-            "params": self.params
-        }
+        return {"jsonrpc": "2.0", "id": id, "method": self.method, "params": self.params}
 
 
 class ErrorCode:
@@ -300,7 +333,6 @@ class ErrorCode:
 
 
 class Error(Exception):
-
     def __init__(self, code: int, message: str, data: Any = None) -> None:
         super().__init__(message)
         self.code = code
@@ -333,11 +365,7 @@ class Response:
         self.result = result
 
     def to_payload(self) -> Dict[str, Any]:
-        r = {
-            "id": self.request_id,
-            "jsonrpc": "2.0",
-            "result": self.result
-        }
+        r = {"id": self.request_id, "jsonrpc": "2.0", "result": self.result}
         return r
 
 
@@ -389,11 +417,7 @@ class Notification:
         return self.method + " " + str(self.params)
 
     def to_payload(self) -> Dict[str, Any]:
-        return {
-            "jsonrpc": "2.0",
-            "method": self.method,
-            "params": self.params
-        }
+        return {"jsonrpc": "2.0", "method": self.method, "params": self.params}
 
 
 class Point(object):
@@ -414,10 +438,7 @@ class Point(object):
         return Point(point['line'], point['character'])
 
     def to_lsp(self) -> Dict[str, Any]:
-        return {
-            "line": self.row,
-            "character": self.col
-        }
+        return {"line": self.row, "character": self.col}
 
 
 class Range(object):
@@ -439,18 +460,15 @@ class Range(object):
         return Range(Point.from_lsp(range['start']), Point.from_lsp(range['end']))
 
     def to_lsp(self) -> Dict[str, Any]:
-        return {
-            'start': self.start.to_lsp(),
-            'end': self.end.to_lsp()
-        }
+        return {'start': self.start.to_lsp(), 'end': self.end.to_lsp()}
 
     def contains(self, point: Point) -> bool:
-        return self.start.row <= point.row <= self.end.row and \
-            (self.end.row > point.row or self.start.col <= point.col <= self.end.col)
+        return self.start.row <= point.row <= self.end.row and (
+            self.end.row > point.row or self.start.col <= point.col <= self.end.col
+        )
 
     def intersects(self, rge: 'Range') -> bool:
-        return self.contains(rge.start) or self.contains(rge.end) or \
-            rge.contains(self.start) or rge.contains(self.end)
+        return self.contains(rge.start) or self.contains(rge.end) or rge.contains(self.start) or rge.contains(self.end)
 
     def extend(self, rge: 'Range') -> 'Range':
         """

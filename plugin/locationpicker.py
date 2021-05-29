@@ -1,11 +1,17 @@
 from .core.logging import debug
-from .core.protocol import DocumentUri, Location, Position
+from .core.protocol import DocumentUri
+from .core.protocol import Location
 from .core.protocol import LocationLink
+from .core.protocol import Position
 from .core.sessions import Session
-from .core.typing import Union, List, Optional, Tuple
+from .core.typing import List
+from .core.typing import Optional
+from .core.typing import Tuple
+from .core.typing import Union
 from .core.views import get_uri_and_position_from_location
 from .core.views import location_to_human_readable
 from .core.views import to_encoded_filename
+
 import functools
 import sublime
 import weakref
@@ -24,11 +30,7 @@ def open_location_async(session: Session, location: Union[Location, LocationLink
 
 
 def open_basic_file(
-    session: Session,
-    uri: str,
-    position: Position,
-    flags: int = 0,
-    group: Optional[int] = None
+    session: Session, uri: str, position: Position, flags: int = 0, group: Optional[int] = None
 ) -> None:
     filename = session.config.map_server_uri_to_client_path(uri)
     if group is None:
@@ -37,13 +39,12 @@ def open_basic_file(
 
 
 class LocationPicker:
-
     def __init__(
         self,
         view: sublime.View,
         session: Session,
         locations: Union[List[Location], List[LocationLink]],
-        side_by_side: bool
+        side_by_side: bool,
     ) -> None:
         self._view = view
         window = view.window()
@@ -59,7 +60,7 @@ class LocationPicker:
             items=[location_to_human_readable(session.config, base_dir, location) for location in locations],
             on_select=self._select_entry,
             on_highlight=self._highlight_entry,
-            flags=sublime.KEEP_OPEN_ON_FOCUS_LOST
+            flags=sublime.KEEP_OPEN_ON_FOCUS_LOST,
         )
 
     def _unpack(self, index: int) -> Tuple[Optional[Session], Union[Location, LocationLink], DocumentUri, Position]:
@@ -80,7 +81,9 @@ class LocationPicker:
                     flags |= sublime.ADD_TO_SELECTION | sublime.SEMI_TRANSIENT
                 open_basic_file(session, uri, position, flags)
             else:
-                sublime.set_timeout_async(functools.partial(open_location_async, session, location, self._side_by_side))
+                sublime.set_timeout_async(
+                    functools.partial(open_location_async, session, location, self._side_by_side)
+                )
         else:
             self._window.focus_view(self._view)
 

@@ -8,9 +8,12 @@ from LSP.plugin.core.views import did_open
 from LSP.plugin.core.views import did_save
 from LSP.plugin.core.views import document_color_params
 from LSP.plugin.core.views import format_diagnostic_for_html
-from LSP.plugin.core.views import FORMAT_STRING, FORMAT_MARKED_STRING, FORMAT_MARKUP_CONTENT, minihtml
+from LSP.plugin.core.views import FORMAT_MARKED_STRING
+from LSP.plugin.core.views import FORMAT_MARKUP_CONTENT
+from LSP.plugin.core.views import FORMAT_STRING
 from LSP.plugin.core.views import lsp_color_to_html
 from LSP.plugin.core.views import lsp_color_to_phantom
+from LSP.plugin.core.views import minihtml
 from LSP.plugin.core.views import MissingFilenameError
 from LSP.plugin.core.views import point_to_offset
 from LSP.plugin.core.views import range_to_region
@@ -24,12 +27,12 @@ from LSP.plugin.core.views import will_save
 from LSP.plugin.core.views import will_save_wait_until
 from unittest.mock import MagicMock
 from unittesting import DeferrableTestCase
+
 import re
 import sublime
 
 
 class ViewsTest(DeferrableTestCase):
-
     def setUp(self) -> None:
         super().setUp()
         self.view = sublime.active_window().new_file()  # new_file() always returns a ready view
@@ -48,80 +51,90 @@ class ViewsTest(DeferrableTestCase):
             uri_from_view(self.view)
 
     def test_did_open(self) -> None:
-        self.assertEqual(did_open(self.view, "python").params, {
-            "textDocument": {
-                "uri": filename_to_uri(self.mock_file_name),
-                "languageId": "python",
-                "text": "hello world\nfoo bar baz",
-                "version": self.view.change_count()
-            }
-        })
+        self.assertEqual(
+            did_open(self.view, "python").params,
+            {
+                "textDocument": {
+                    "uri": filename_to_uri(self.mock_file_name),
+                    "languageId": "python",
+                    "text": "hello world\nfoo bar baz",
+                    "version": self.view.change_count(),
+                }
+            },
+        )
 
     def test_did_change_full(self) -> None:
         version = self.view.change_count()
-        self.assertEqual(did_change(self.view, version).params, {
-            "textDocument": {
-                "uri": filename_to_uri(self.mock_file_name),
-                "version": version
+        self.assertEqual(
+            did_change(self.view, version).params,
+            {
+                "textDocument": {"uri": filename_to_uri(self.mock_file_name), "version": version},
+                "contentChanges": [{"text": "hello world\nfoo bar baz"}],
             },
-            "contentChanges": [{"text": "hello world\nfoo bar baz"}]
-        })
+        )
 
     def test_will_save(self) -> None:
-        self.assertEqual(will_save(self.view, 42).params, {
-            "textDocument": {"uri": filename_to_uri(self.mock_file_name)},
-            "reason": 42
-        })
+        self.assertEqual(
+            will_save(self.view, 42).params,
+            {"textDocument": {"uri": filename_to_uri(self.mock_file_name)}, "reason": 42},
+        )
 
     def test_will_save_wait_until(self) -> None:
-        self.assertEqual(will_save_wait_until(self.view, 1337).params, {
-            "textDocument": {"uri": filename_to_uri(self.mock_file_name)},
-            "reason": 1337
-        })
+        self.assertEqual(
+            will_save_wait_until(self.view, 1337).params,
+            {"textDocument": {"uri": filename_to_uri(self.mock_file_name)}, "reason": 1337},
+        )
 
     def test_did_save(self) -> None:
-        self.assertEqual(did_save(self.view, include_text=False).params, {
-            "textDocument": {"uri": filename_to_uri(self.mock_file_name)}
-        })
-        self.assertEqual(did_save(self.view, include_text=True).params, {
-            "textDocument": {"uri": filename_to_uri(self.mock_file_name)},
-            "text": "hello world\nfoo bar baz"
-        })
+        self.assertEqual(
+            did_save(self.view, include_text=False).params,
+            {"textDocument": {"uri": filename_to_uri(self.mock_file_name)}},
+        )
+        self.assertEqual(
+            did_save(self.view, include_text=True).params,
+            {"textDocument": {"uri": filename_to_uri(self.mock_file_name)}, "text": "hello world\nfoo bar baz"},
+        )
 
     def test_text_document_position_params(self) -> None:
-        self.assertEqual(text_document_position_params(self.view, 2), {
-            "textDocument": {"uri": filename_to_uri(self.mock_file_name)},
-            "position": {"line": 0, "character": 2}
-        })
+        self.assertEqual(
+            text_document_position_params(self.view, 2),
+            {"textDocument": {"uri": filename_to_uri(self.mock_file_name)}, "position": {"line": 0, "character": 2}},
+        )
 
     def test_text_document_formatting(self) -> None:
-        self.view.settings = MagicMock(return_value={
-            "translate_tabs_to_spaces": False,
-            "tab_size": 1234, "ensure_newline_at_eof_on_save": True})
-        self.assertEqual(text_document_formatting(self.view).params, {
-            "textDocument": {"uri": filename_to_uri(self.mock_file_name)},
-            "options": {
-                "tabSize": 1234,
-                "insertSpaces": False,
-                "trimTrailingWhitespace": False,
-                "insertFinalNewline": True,
-                "trimFinalNewlines": True
-            }
-        })
+        self.view.settings = MagicMock(
+            return_value={"translate_tabs_to_spaces": False, "tab_size": 1234, "ensure_newline_at_eof_on_save": True}
+        )
+        self.assertEqual(
+            text_document_formatting(self.view).params,
+            {
+                "textDocument": {"uri": filename_to_uri(self.mock_file_name)},
+                "options": {
+                    "tabSize": 1234,
+                    "insertSpaces": False,
+                    "trimTrailingWhitespace": False,
+                    "insertFinalNewline": True,
+                    "trimFinalNewlines": True,
+                },
+            },
+        )
 
     def test_text_document_range_formatting(self) -> None:
         self.view.settings = MagicMock(return_value={"tab_size": 4321})
-        self.assertEqual(text_document_range_formatting(self.view, sublime.Region(0, 2)).params, {
-            "textDocument": {"uri": filename_to_uri(self.mock_file_name)},
-            "options": {
-                "tabSize": 4321,
-                "insertSpaces": False,
-                "trimTrailingWhitespace": False,
-                "insertFinalNewline": False,
-                "trimFinalNewlines": False
+        self.assertEqual(
+            text_document_range_formatting(self.view, sublime.Region(0, 2)).params,
+            {
+                "textDocument": {"uri": filename_to_uri(self.mock_file_name)},
+                "options": {
+                    "tabSize": 4321,
+                    "insertSpaces": False,
+                    "trimTrailingWhitespace": False,
+                    "insertFinalNewline": False,
+                    "trimFinalNewlines": False,
+                },
+                "range": {"start": {"line": 0, "character": 0}, "end": {"line": 0, "character": 2}},
             },
-            "range": {"start": {"line": 0, "character": 0}, "end": {"line": 0, "character": 2}}
-        })
+        )
 
     def test_point_to_offset(self) -> None:
         first_line_length = len(self.view.line(0))
@@ -144,13 +157,13 @@ class ViewsTest(DeferrableTestCase):
         self.assertEqual(len(self.view.sel()), 2)
         self.assertEqual(self.view.substr(self.view.sel()[0]), "hello")
         self.assertEqual(self.view.substr(self.view.sel()[1]), "world")
-        self.assertEqual(selection_range_params(self.view), {
-            "textDocument": {"uri": filename_to_uri(self.mock_file_name)},
-            "positions": [
-                {"line": 0, "character": 5},
-                {"line": 0, "character": 11}
-            ]
-        })
+        self.assertEqual(
+            selection_range_params(self.view),
+            {
+                "textDocument": {"uri": filename_to_uri(self.mock_file_name)},
+                "positions": [{"line": 0, "character": 5}, {"line": 0, "character": 11}],
+            },
+        )
 
     def test_minihtml_no_allowed_formats(self) -> None:
         content = "<div>text\n</div>"
@@ -198,14 +211,13 @@ class ViewsTest(DeferrableTestCase):
         self.assertEqual(formatted, expect)
 
     def test_minihtml_handles_marked_string_array(self) -> None:
-        content = [
-            {'value': 'import sys', 'language': 'python'},
-            {'value': 'let x', 'language': 'js'}
-        ]
-        expect = '\n\n'.join([
-            '<div class="highlight"><pre><span>import</span><span> </span><span>sys</span><br></pre></div>',
-            '<div class="highlight"><pre><span>let</span><span> </span><span>x</span><br></pre></div>'
-        ])
+        content = [{'value': 'import sys', 'language': 'python'}, {'value': 'let x', 'language': 'js'}]
+        expect = '\n\n'.join(
+            [
+                '<div class="highlight"><pre><span>import</span><span> </span><span>sys</span><br></pre></div>',
+                '<div class="highlight"><pre><span>let</span><span> </span><span>x</span><br></pre></div>',
+            ]
+        )
         allowed_formats = FORMAT_MARKED_STRING | FORMAT_MARKUP_CONTENT
         formatted = self._strip_style_attributes(minihtml(self.view, content, allowed_formats=allowed_formats))
         self.assertEqual(formatted, expect)
@@ -235,7 +247,7 @@ class ViewsTest(DeferrableTestCase):
         expect_attributes = [
             'class="magiclink magiclink-github magiclink-repository"',
             'href="https://github.com/sublimelsp/LSP"',
-            'title="GitHub Repository: sublimelsp/LSP"'
+            'title="GitHub Repository: sublimelsp/LSP"',
         ]
         expect = '<p><a {}>sublimelsp/LSP</a></p>'.format(' '.join(expect_attributes))
         self.assertEqual(minihtml(self.view, content, allowed_formats=FORMAT_MARKUP_CONTENT), expect)
@@ -284,22 +296,8 @@ class ViewsTest(DeferrableTestCase):
     def test_lsp_color_to_phantom(self) -> None:
         response = [
             {
-                "color": {
-                    "green": 0.9725490196078431,
-                    "blue": 1,
-                    "red": 0.9411764705882353,
-                    "alpha": 1
-                },
-                "range": {
-                    "start": {
-                        "character": 0,
-                        "line": 0
-                    },
-                    "end": {
-                        "character": 5,
-                        "line": 0
-                    }
-                }
+                "color": {"green": 0.9725490196078431, "blue": 1, "red": 0.9411764705882353, "alpha": 1},
+                "range": {"start": {"character": 0, "line": 0}, "end": {"character": 5, "line": 0}},
             }
         ]
         phantom = lsp_color_to_phantom(self.view, response[0])
@@ -308,8 +306,8 @@ class ViewsTest(DeferrableTestCase):
 
     def test_document_color_params(self) -> None:
         self.assertEqual(
-            document_color_params(self.view),
-            {"textDocument": {"uri": filename_to_uri(self.view.file_name())}})
+            document_color_params(self.view), {"textDocument": {"uri": filename_to_uri(self.view.file_name())}}
+        )
 
     def test_format_diagnostic_for_html(self) -> None:
         diagnostic1 = {
@@ -318,16 +316,7 @@ class ViewsTest(DeferrableTestCase):
             # The relatedInformation is present here, but it's an empty list.
             # This should have the same behavior as having no relatedInformation present.
             "relatedInformation": [],
-            "range": {
-                "start": {
-                    "character": 0,
-                    "line": 0
-                },
-                "end": {
-                    "character": 5,
-                    "line": 0
-                }
-            }
+            "range": {"start": {"character": 0, "line": 0}, "end": {"character": 5, "line": 0}},
         }  # type: Diagnostic
         # Make the same diagnostic but without the relatedInformation
         diagnostic2 = deepcopy(diagnostic1)
@@ -337,11 +326,11 @@ class ViewsTest(DeferrableTestCase):
         # They should result in the same minihtml.
         self.assertEqual(
             format_diagnostic_for_html(self.view, diagnostic1, "/foo/bar"),
-            format_diagnostic_for_html(self.view, diagnostic2, "/foo/bar")
+            format_diagnostic_for_html(self.view, diagnostic2, "/foo/bar"),
         )
 
     def test_escaped_newline_in_markdown(self) -> None:
         self.assertEqual(
             minihtml(self.view, {"kind": "markdown", "value": "hello\\\nworld"}, FORMAT_MARKUP_CONTENT),
-            "<p>hello<br />\nworld</p>"
+            "<p>hello<br />\nworld</p>",
         )

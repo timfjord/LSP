@@ -38,10 +38,7 @@ else:
             if not isinstance(args, tuple):
                 args = (args,)
 
-            name = '{}[{}]'.format(
-                str(self),
-                ', '.join(map(str, args))
-            )
+            name = '{}[{}]'.format(str(self), ', '.join(map(str, args)))
             return _make_type(name)
 
         def __str__(self) -> str:

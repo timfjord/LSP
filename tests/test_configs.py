@@ -1,4 +1,5 @@
-from LSP.plugin.core.settings import read_client_config, update_client_config
+from LSP.plugin.core.settings import read_client_config
+from LSP.plugin.core.settings import update_client_config
 from LSP.plugin.core.views import get_uri_and_position_from_location
 from LSP.plugin.core.views import to_encoded_filename
 from os.path import dirname
@@ -8,13 +9,12 @@ test_file_path = dirname(__file__) + "/testfile.txt"
 
 
 class ConfigParsingTests(DeferrableTestCase):
-
     def test_can_parse_old_client_settings(self):
         settings = {
             "command": ["pyls"],
             "scopes": ["text.html.vue"],
             "syntaxes": ["Packages/Python/Python.sublime-syntax"],  # it should use this one
-            "languageId": "java"
+            "languageId": "java",
         }
         config = read_client_config("pyls", settings)
         self.assertEqual(config.selector, "source.python")
@@ -24,42 +24,31 @@ class ConfigParsingTests(DeferrableTestCase):
         settings = {
             "command": ["pyls"],
             # Check that "selector" will be "source.python"
-            "languages": [{"languageId": "python"}]
+            "languages": [{"languageId": "python"}],
         }
         config = read_client_config("pyls", settings)
         self.assertEqual(config.selector, "(source.python)")
         self.assertEqual(config.priority_selector, "(source.python)")
 
     def test_can_parse_settings_with_selector(self):
-        settings = {
-            "command": ["pyls"],
-            "selector": "source.python"
-        }
+        settings = {"command": ["pyls"], "selector": "source.python"}
         config = read_client_config("pyls", settings)
         self.assertEqual(config.selector, "source.python")
         self.assertEqual(config.priority_selector, "source.python")
 
     def test_can_update_config(self):
-        settings = {
-            "command": ["pyls"],
-            "document_selector": "source.python",
-            "languageId": "python"
-        }
+        settings = {"command": ["pyls"], "document_selector": "source.python", "languageId": "python"}
         config = read_client_config("pyls", settings)
         config = update_client_config(config, {"enabled": True})
         self.assertEqual(config.enabled, True)
 
     def test_can_read_experimental_capabilities(self):
-        experimental_capabilities = {
-            "foo": 1,
-            "bar": True,
-            "baz": "abc"
-        }
+        experimental_capabilities = {"foo": 1, "bar": True, "baz": "abc"}
         settings = {
             "command": ["pyls"],
             "document_selector": "source.python",
             "languageId": "python",
-            "experimental_capabilities": experimental_capabilities
+            "experimental_capabilities": experimental_capabilities,
         }
         config = read_client_config("pyls", settings)
         self.assertEqual(config.experimental_capabilities, experimental_capabilities)
@@ -71,8 +60,8 @@ class ConfigParsingTests(DeferrableTestCase):
             "disabled_capabilities": {
                 "colorProvider": True,
                 "completionProvider": {"triggerCharacters": True},
-                "codeActionProvider": True
-            }
+                "codeActionProvider": True,
+            },
         }
         config = read_client_config("pyls", settings)
         self.assertTrue(config.is_disabled_capability("colorProvider"))
@@ -93,7 +82,7 @@ class ConfigParsingTests(DeferrableTestCase):
         settings = {
             "command": ["pyls"],
             "selector": "source.python",
-            "disabled_capabilities": {"completionProvider": {"triggerCharacters": True}}
+            "disabled_capabilities": {"completionProvider": {"triggerCharacters": True}},
         }
         config = read_client_config("pyls", settings)
         capability_path = "completionProvider"
@@ -103,24 +92,18 @@ class ConfigParsingTests(DeferrableTestCase):
         self.assertIn("resolveProvider", options)
 
     def test_path_maps(self):
-        config = read_client_config("asdf", {
-            "command": ["asdf"],
-            "selector": "source.foo",
-            "path_maps": [
-                {
-                    "local": "/home/user/projects/myproject",
-                    "remote": "/workspace"
-                },
-                {
-                    "local": "/home/user/projects/another",
-                    "remote": "/workspace2"
-                },
-                {
-                    "local": "C:/Documents",
-                    "remote": "/workspace3"
-                }
-            ]
-        })
+        config = read_client_config(
+            "asdf",
+            {
+                "command": ["asdf"],
+                "selector": "source.foo",
+                "path_maps": [
+                    {"local": "/home/user/projects/myproject", "remote": "/workspace"},
+                    {"local": "/home/user/projects/another", "remote": "/workspace2"},
+                    {"local": "C:/Documents", "remote": "/workspace3"},
+                ],
+            },
+        )
         uri = config.map_client_path_to_server_uri("/home/user/projects/myproject/file.js")
         self.assertEqual(uri, "file:///workspace/file.js")
         uri = config.map_client_path_to_server_uri("/home/user/projects/another/foo.js")
@@ -142,15 +125,13 @@ class ConfigParsingTests(DeferrableTestCase):
         self.assertEqual(path, "/c:/dir ectory/file.txt")
 
         # Test to_encoded_filename
-        uri, position = get_uri_and_position_from_location({
-            'uri': 'file:///foo/bar',
-            'range': {'start': {'line': 0, 'character': 5}}
-        })  # type: ignore
+        uri, position = get_uri_and_position_from_location(
+            {'uri': 'file:///foo/bar', 'range': {'start': {'line': 0, 'character': 5}}}
+        )  # type: ignore
         path = config.map_server_uri_to_client_path(uri)
         self.assertEqual(to_encoded_filename(path, position), '/foo/bar:1:6')
-        uri, position = get_uri_and_position_from_location({
-                'targetUri': 'file:///foo/bar',
-                'targetSelectionRange': {'start': {'line': 1234, 'character': 4321}}
-            })  # type: ignore
+        uri, position = get_uri_and_position_from_location(
+            {'targetUri': 'file:///foo/bar', 'targetSelectionRange': {'start': {'line': 1234, 'character': 4321}}}
+        )  # type: ignore
         path = config.map_server_uri_to_client_path(uri)
         self.assertEqual(to_encoded_filename(path, position), '/foo/bar:1235:4322')

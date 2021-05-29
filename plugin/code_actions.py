@@ -9,11 +9,20 @@ from .core.registry import sessions_for_view
 from .core.registry import windows
 from .core.sessions import SessionBufferProtocol
 from .core.settings import userprefs
-from .core.typing import Any, List, Dict, Callable, Optional, Tuple, Union, Sequence
+from .core.typing import Any
+from .core.typing import Callable
+from .core.typing import Dict
+from .core.typing import List
+from .core.typing import Optional
+from .core.typing import Sequence
+from .core.typing import Tuple
+from .core.typing import Union
 from .core.views import entire_content_region
 from .core.views import first_selection_region
 from .core.views import text_document_code_action_params
-from .save_command import LspSaveCommand, SaveTask
+from .save_command import LspSaveCommand
+from .save_command import SaveTask
+
 import sublime
 
 CodeActionOrCommand = Union[CodeAction, Command]
@@ -80,7 +89,7 @@ class CodeActionsManager:
         view: sublime.View,
         region: sublime.Region,
         session_buffer_diagnostics: Sequence[Tuple[SessionBufferProtocol, Sequence[Diagnostic]]],
-        actions_handler: Callable[[CodeActionsByConfigName], None]
+        actions_handler: Callable[[CodeActionsByConfigName], None],
     ) -> None:
         """
         Requests code actions *only* for provided diagnostics. If session has no diagnostics then
@@ -94,7 +103,7 @@ class CodeActionsManager:
         region: sublime.Region,
         session_buffer_diagnostics: Sequence[Tuple[SessionBufferProtocol, Sequence[Diagnostic]]],
         actions_handler: Callable[[CodeActionsByConfigName], None],
-        only_kinds: Optional[Dict[str, bool]] = None
+        only_kinds: Optional[Dict[str, bool]] = None,
     ) -> None:
         """
         Requests code actions with provided diagnostics and specified region. If there are
@@ -106,7 +115,7 @@ class CodeActionsManager:
         self,
         view: sublime.View,
         actions_handler: Callable[[CodeActionsByConfigName], None],
-        on_save_actions: Dict[str, bool]
+        on_save_actions: Dict[str, bool],
     ) -> None:
         """
         Requests code actions on save.
@@ -120,12 +129,13 @@ class CodeActionsManager:
         session_buffer_diagnostics: Sequence[Tuple[SessionBufferProtocol, Sequence[Diagnostic]]],
         only_with_diagnostics: bool,
         actions_handler: Callable[[CodeActionsByConfigName], None],
-        on_save_actions: Optional[Dict[str, bool]] = None
+        on_save_actions: Optional[Dict[str, bool]] = None,
     ) -> None:
         use_cache = on_save_actions is None
         if use_cache:
             location_cache_key = "{}#{}:{}:{}".format(
-                view.buffer_id(), view.change_count(), region, only_with_diagnostics)
+                view.buffer_id(), view.change_count(), region, only_with_diagnostics
+            )
             if self._response_cache:
                 cache_key, cache_collector = self._response_cache
                 if location_cache_key == cache_key:
@@ -143,11 +153,11 @@ class CodeActionsManager:
                         supported_kinds = session.get_capability('codeActionProvider.codeActionKinds')
                         matching_kinds = get_matching_kinds(on_save_actions, supported_kinds or [])
                         if matching_kinds:
-                            params = text_document_code_action_params(
-                                view, file_name, region, [], matching_kinds)
+                            params = text_document_code_action_params(view, file_name, region, [], matching_kinds)
                             request = Request.codeAction(params, view)
                             session.send_request_async(
-                                request, *filtering_collector(session.config.name, matching_kinds, collector))
+                                request, *filtering_collector(session.config.name, matching_kinds, collector)
+                            )
                     else:
                         diagnostics = []  # type: Sequence[Diagnostic]
                         for sb, diags in session_buffer_diagnostics:
@@ -164,9 +174,7 @@ class CodeActionsManager:
 
 
 def filtering_collector(
-    config_name: str,
-    kinds: List[str],
-    actions_collector: CodeActionsCollector
+    config_name: str, kinds: List[str], actions_collector: CodeActionsCollector
 ) -> Tuple[Callable[[CodeActionsResponse], None], Callable[[Any], None]]:
     """
     Filters actions returned from the session so that only matching kinds are collected.
@@ -179,10 +187,7 @@ def filtering_collector(
         return [a for a in (actions or []) if a.get('kind') in kinds]  # type: ignore
 
     collector = actions_collector.create_collector(config_name)
-    return (
-        lambda actions: collector(actions_filter(actions)),
-        lambda error: collector([])
-    )
+    return (lambda actions: collector(actions_filter(actions)), lambda error: collector([]))
 
 
 actions_manager = CodeActionsManager()
@@ -204,7 +209,7 @@ def get_matching_kinds(user_actions: Dict[str, bool], session_actions: List[str]
         enabled = False
         action_parts = session_action.split('.')
         for i in range(len(action_parts)):
-            current_part = '.'.join(action_parts[0:i + 1])
+            current_part = '.'.join(action_parts[0 : i + 1])
             user_value = user_actions.get(current_part, None)
             if isinstance(user_value, bool):
                 enabled = user_value
@@ -220,6 +225,7 @@ class CodeActionOnSaveTask(SaveTask):
     The amount of time the task is allowed to run is defined by user-controlled setting. If the task
     runs longer, the native save will be triggered before waiting for results.
     """
+
     @classmethod
     def is_applicable(cls, view: sublime.View) -> bool:
         return bool(view.window()) and bool(cls._get_code_actions_on_save(view))
@@ -286,7 +292,8 @@ class LspCodeActionsCommand(LspTextCommand):
         session_buffer_diagnostics, covering = listener.diagnostics_intersecting_async(region)
         dict_kinds = {kind: True for kind in only_kinds} if only_kinds else None
         actions_manager.request_for_region_async(
-            view, covering, session_buffer_diagnostics, self.handle_responses_async, dict_kinds)
+            view, covering, session_buffer_diagnostics, self.handle_responses_async, dict_kinds
+        )
 
     def handle_responses_async(self, responses: CodeActionsByConfigName) -> None:
         self.commands_by_config = responses
@@ -318,7 +325,8 @@ class LspCodeActionsCommand(LspTextCommand):
                 if session:
                     name = session.config.name
                     session.run_code_action_async(selected[2], progress=True).then(
-                        lambda resp: self.handle_response_async(name, resp))
+                        lambda resp: self.handle_response_async(name, resp)
+                    )
 
             sublime.set_timeout_async(run_async)
 

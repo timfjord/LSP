@@ -1,10 +1,11 @@
-from LSP.plugin.core.url import (filename_to_uri, uri_to_filename)
+from LSP.plugin.core.url import filename_to_uri
+from LSP.plugin.core.url import uri_to_filename
+
 import sys
 import unittest
 
 
 class WindowsTests(unittest.TestCase):
-
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_converts_path_to_uri(self):
         self.assertEqual("file:///C:/dir%20ectory/file.txt", filename_to_uri("c:\\dir ectory\\file.txt"))
@@ -20,7 +21,6 @@ class WindowsTests(unittest.TestCase):
 
 
 class NixTests(unittest.TestCase):
-
     @unittest.skipIf(sys.platform.startswith("win"), "requires non-Windows")
     def test_converts_path_to_uri(self):
         self.assertEqual("file:///dir%20ectory/file.txt", filename_to_uri("/dir ectory/file.txt"))

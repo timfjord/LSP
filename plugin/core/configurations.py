@@ -1,7 +1,13 @@
 from .logging import debug
 from .types import ClientConfig
-from .typing import Any, Generator, List, Set, Dict
-from .workspace import enable_in_project, disable_in_project
+from .typing import Any
+from .typing import Dict
+from .typing import Generator
+from .typing import List
+from .typing import Set
+from .workspace import disable_in_project
+from .workspace import enable_in_project
+
 import sublime
 
 

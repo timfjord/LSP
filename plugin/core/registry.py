@@ -1,8 +1,12 @@
 from .configurations import ConfigManager
 from .sessions import Session
 from .settings import client_configs
-from .typing import Optional, Any, Generator, Iterable
+from .typing import Any
+from .typing import Generator
+from .typing import Iterable
+from .typing import Optional
 from .windows import WindowRegistry
+
 import sublime
 import sublime_plugin
 

@@ -5,15 +5,21 @@ from .core.protocol import TextEdit
 from .core.registry import LspTextCommand
 from .core.sessions import Session
 from .core.settings import userprefs
-from .core.typing import Any, Callable, List, Optional, Iterator, Union
+from .core.typing import Any
+from .core.typing import Callable
+from .core.typing import Iterator
+from .core.typing import List
+from .core.typing import Optional
+from .core.typing import Union
 from .core.views import entire_content_region
 from .core.views import first_selection_region
 from .core.views import text_document_formatting
 from .core.views import text_document_range_formatting
 from .core.views import will_save_wait_until
-from .save_command import LspSaveCommand, SaveTask
-import sublime
+from .save_command import LspSaveCommand
+from .save_command import SaveTask
 
+import sublime
 
 FormatResponse = Union[List[TextEdit], None, Error]
 
@@ -62,7 +68,8 @@ class WillSaveWaitTask(SaveTask):
         session.send_request_async(
             will_save_wait_until(self._task_runner.view, reason=1),  # TextDocumentSaveReason.Manual
             self._on_response,
-            lambda error: self._on_response(None))
+            lambda error: self._on_response(None),
+        )
 
     def _on_response(self, response: Any) -> None:
         if response and not self._cancelled:

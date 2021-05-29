@@ -1,18 +1,21 @@
 from .collections import DottedDict
 from .logging import debug
-from .types import ClientConfig, debounced
+from .types import ClientConfig
+from .types import debounced
 from .types import read_dict_setting
 from .types import Settings
 from .types import SettingsRegistration
-from .typing import Any, Optional, Dict, Callable
-import sublime
+from .typing import Any
+from .typing import Callable
+from .typing import Dict
+from .typing import Optional
 
+import sublime
 
 PLUGIN_NAME = 'LSP'
 
 
 class ClientConfigs:
-
     def __init__(self) -> None:
         self.all = {}  # type: Dict[str, ClientConfig]
         self.external = {}  # type: Dict[str, ClientConfig]

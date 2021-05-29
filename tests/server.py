@@ -22,13 +22,21 @@ TODO: Untested on Windows.
 """
 from argparse import ArgumentParser
 from enum import IntEnum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union, Iterable, Awaitable
+from typing import Any
+from typing import Awaitable
+from typing import Callable
+from typing import Dict
+from typing import Iterable
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
+
 import asyncio
 import json
 import os
 import sys
 import uuid
-
 
 __package__ = "server"
 __version__ = "1.0.0"
@@ -66,7 +74,6 @@ class ErrorCode(IntEnum):
 
 
 class Error(Exception):
-
     def __init__(self, code: ErrorCode, message: str) -> None:
         super().__init__(message)
         self.code = code
@@ -103,11 +110,7 @@ def make_request(method: str, request_id: Any, params: PayloadLike) -> StringDic
 
 
 def dump(payload: PayloadLike) -> bytes:
-    return json.dumps(
-        payload,
-        check_circular=False,
-        ensure_ascii=False,
-        separators=(",", ":")).encode(ENCODING)
+    return json.dumps(payload, check_circular=False, ensure_ascii=False, separators=(",", ":")).encode(ENCODING)
 
 
 def content_length(line: bytes) -> Optional[int]:
@@ -133,7 +136,6 @@ class StopLoopException(Exception):
 
 
 class Request:
-
     async def on_error(self, err: Error) -> None:
         pass
 
@@ -142,7 +144,6 @@ class Request:
 
 
 class SimpleRequest(Request):
-
     def __init__(self) -> None:
         self.cv = asyncio.Condition()
         self.result = None  # type: PayloadLike
@@ -160,7 +161,6 @@ class SimpleRequest(Request):
 
 
 class Session:
-
     def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         self._reader = reader
         self._writer = writer
@@ -180,20 +180,16 @@ class Session:
         self._install_handlers()
 
     def _log(self, message: str) -> None:
-        self._notify("window/logMessage",
-                     {"type": MessageType.info, "message": message})
+        self._notify("window/logMessage", {"type": MessageType.info, "message": message})
 
     def _notify(self, method: str, params: PayloadLike) -> None:
-        asyncio.get_event_loop().create_task(self._send_payload(
-            make_notification(method, params)))
+        asyncio.get_event_loop().create_task(self._send_payload(make_notification(method, params)))
 
     def _reply(self, request_id: Any, params: PayloadLike) -> None:
-        asyncio.get_event_loop().create_task(self._send_payload(
-            make_response(request_id, params)))
+        asyncio.get_event_loop().create_task(self._send_payload(make_response(request_id, params)))
 
     def _error(self, request_id: Any, err: Error) -> None:
-        asyncio.get_event_loop().create_task(self._send_payload(
-            make_error_response(request_id, err)))
+        asyncio.get_event_loop().create_task(self._send_payload(make_error_response(request_id, err)))
 
     async def request(self, method: str, params: PayloadLike) -> PayloadLike:
         request = SimpleRequest()
@@ -211,7 +207,8 @@ class Session:
         content = (
             f"Content-Length: {len(body)}\r\n".encode(ENCODING),
             "Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n".encode(ENCODING),
-            body)
+            body,
+        )
         self._writer.writelines(content)
         await self._writer.drain()
 
@@ -244,8 +241,9 @@ class Session:
     def _on_notification(self, notification_method: str, handler: Callable[[PayloadLike], Awaitable[None]]) -> None:
         self._notification_handlers[notification_method] = handler
 
-    async def _handle(self, typestr: str, message: Dict[str, Any], handlers: Dict[str, Callable],
-                      request_id: Optional[int]) -> None:
+    async def _handle(
+        self, typestr: str, message: Dict[str, Any], handlers: Dict[str, Callable], request_id: Optional[int]
+    ) -> None:
         method = message.get("method", "")
         params = message.get("params")
         unhandled = True
@@ -261,8 +259,7 @@ class Session:
                 assert request_id is not None
                 self._reply(request_id, mocked_response)
             elif request_id is not None:
-                self._error(request_id, Error(
-                    ErrorCode.MethodNotFound, "method '{}' not found".format(method)))
+                self._error(request_id, Error(ErrorCode.MethodNotFound, "method '{}' not found".format(method)))
             else:
                 if unhandled:
                     self._log(f"unhandled {typestr} {method}")
@@ -380,12 +377,10 @@ class Session:
 
     async def _initialize(self, params: PayloadLike) -> PayloadLike:
         if not isinstance(params, dict):
-            raise Error(ErrorCode.InvalidParams,
-                        "expected params to be a dictionary")
+            raise Error(ErrorCode.InvalidParams, "expected params to be a dictionary")
         init_options = params.get("initializationOptions", {})
         if not isinstance(init_options, dict):
-            raise Error(ErrorCode.InvalidParams,
-                        "expected initializationOptions to be a dictionary")
+            raise Error(ErrorCode.InvalidParams, "expected initializationOptions to be a dictionary")
         return init_options.get("serverResponse", {})
 
     async def _shutdown(self, params: PayloadLike) -> PayloadLike:
@@ -431,7 +426,6 @@ def _win32_stdio(loop: asyncio.AbstractEventLoop) -> Tuple[asyncio.StreamReader,
     # use an executor to read from stdin and write to stdout
     # note: if nothing ever drains the writer explicitly, no flushing ever takes place!
     class Reader:
-
         def __init__(self, loop: asyncio.AbstractEventLoop) -> None:
             self.loop = loop
             self.stdin = sys.stdin.buffer
@@ -457,7 +451,6 @@ def _win32_stdio(loop: asyncio.AbstractEventLoop) -> Tuple[asyncio.StreamReader,
             return await self.loop.run_in_executor(None, self.stdin.read, n)
 
     class Writer:
-
         def __init__(self, loop: asyncio.AbstractEventLoop) -> None:
             self.loop = loop
             self.buffer: List[bytes] = []
@@ -479,6 +472,8 @@ def _win32_stdio(loop: asyncio.AbstractEventLoop) -> Tuple[asyncio.StreamReader,
             await self.loop.run_in_executor(None, do_blocking_drain)
 
     return Reader(loop), Writer(loop)  # type: ignore
+
+
 # END: https://stackoverflow.com/a/52702646/990142
 
 
@@ -486,7 +481,6 @@ async def main(tcp_port: Optional[int] = None) -> bool:
     if tcp_port is not None:
 
         class ClientConnectedCallback:
-
             def __init__(self) -> None:
                 self.received_shutdown = False
 

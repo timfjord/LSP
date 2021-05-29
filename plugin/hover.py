@@ -9,24 +9,31 @@ from .core.registry import LspTextCommand
 from .core.registry import windows
 from .core.sessions import SessionBufferProtocol
 from .core.settings import userprefs
-from .core.typing import List, Optional, Any, Dict, Tuple, Sequence
+from .core.typing import Any
+from .core.typing import Dict
+from .core.typing import List
+from .core.typing import Optional
+from .core.typing import Sequence
+from .core.typing import Tuple
 from .core.views import diagnostic_severity
 from .core.views import first_selection_region
 from .core.views import format_diagnostic_for_html
-from .core.views import FORMAT_MARKED_STRING, FORMAT_MARKUP_CONTENT, minihtml
+from .core.views import FORMAT_MARKED_STRING
+from .core.views import FORMAT_MARKUP_CONTENT
 from .core.views import is_location_href
 from .core.views import make_command_link
 from .core.views import make_link
+from .core.views import minihtml
 from .core.views import show_lsp_popup
 from .core.views import text_document_position_params
 from .core.views import unpack_href_location
 from .core.views import update_lsp_popup
 from .core.windows import AbstractViewListener
 from urllib.parse import urlparse
+
 import functools
 import sublime
 import webbrowser
-
 
 SUBLIME_WORD_MASK = 515
 
@@ -64,17 +71,16 @@ link_kinds = [
 
 
 class LspHoverCommand(LspTextCommand):
-
     def __init__(self, view: sublime.View) -> None:
         super().__init__(view)
-        self._base_dir = None   # type: Optional[str]
+        self._base_dir = None  # type: Optional[str]
 
     def run(
         self,
         edit: sublime.Edit,
         only_diagnostics: bool = False,
         point: Optional[int] = None,
-        event: Optional[dict] = None
+        event: Optional[dict] = None,
     ) -> None:
         temp_point = point
         if temp_point is None:
@@ -105,8 +111,11 @@ class LspHoverCommand(LspTextCommand):
             if self._diagnostics_by_config:
                 if not only_diagnostics:
                     actions_manager.request_with_diagnostics_async(
-                        self.view, covering, self._diagnostics_by_config,
-                        functools.partial(self.handle_code_actions, listener, hover_point))
+                        self.view,
+                        covering,
+                        self._diagnostics_by_config,
+                        functools.partial(self.handle_code_actions, listener, hover_point),
+                    )
                 self.show_hover(listener, hover_point, only_diagnostics)
 
         sublime.set_timeout_async(run_async)
@@ -117,13 +126,11 @@ class LspHoverCommand(LspTextCommand):
             document_position = text_document_position_params(self.view, point)
             session.send_request_async(
                 Request("textDocument/hover", document_position, self.view),
-                lambda response: self.handle_response(listener, response, point))
+                lambda response: self.handle_response(listener, response, point),
+            )
 
     def handle_code_actions(
-        self,
-        listener: AbstractViewListener,
-        point: int,
-        responses: Dict[str, List[CodeActionOrCommand]]
+        self, listener: AbstractViewListener, point: int, responses: Dict[str, List[CodeActionOrCommand]]
     ) -> None:
         self._actions_by_config = responses
         self.show_hover(listener, point, only_diagnostics=False)
@@ -149,7 +156,8 @@ class LspHoverCommand(LspTextCommand):
             formatted.append('<div class="diagnostics">')
             for diagnostic in diagnostics:
                 by_severity.setdefault(diagnostic_severity(diagnostic), []).append(
-                    format_diagnostic_for_html(self.view, sb.session.config, diagnostic, self._base_dir))
+                    format_diagnostic_for_html(self.view, sb.session.config, diagnostic, self._base_dir)
+                )
             for items in by_severity.values():
                 formatted.extend(items)
             config_name = sb.session.config.name
@@ -186,7 +194,8 @@ class LspHoverCommand(LspTextCommand):
                     contents,
                     flags=sublime.HIDE_ON_MOUSE_MOVE_AWAY,
                     location=point,
-                    on_navigate=lambda href: self._on_navigate(href, point))
+                    on_navigate=lambda href: self._on_navigate(href, point),
+                )
 
     def _on_navigate(self, href: str, point: int) -> None:
         if href.startswith("subl:"):
@@ -203,8 +212,9 @@ class LspHoverCommand(LspTextCommand):
             self.view.run_command("lsp_selection_set", {"regions": [(point, point)]})
             window = self.view.window()
             if window:
-                window.show_quick_panel(titles, lambda i: self.handle_code_action_select(config_name, i),
-                                        placeholder="Code actions")
+                window.show_quick_panel(
+                    titles, lambda i: self.handle_code_action_select(config_name, i), placeholder="Code actions"
+                )
         elif is_location_href(href):
             session_name, uri, row, col_utf16 = unpack_href_location(href)
             session = self.session_by_name(session_name)

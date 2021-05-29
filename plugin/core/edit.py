@@ -1,13 +1,19 @@
 from .logging import debug
 from .open import open_file
 from .promise import Promise
-from .protocol import TextEdit as LspTextEdit, Position
-from .typing import List, Dict, Any, Iterable, Optional, Tuple
+from .protocol import Position
+from .protocol import TextEdit as LspTextEdit
+from .typing import Any
+from .typing import Dict
+from .typing import Iterable
+from .typing import List
+from .typing import Optional
+from .typing import Tuple
 from .url import uri_to_filename
 from functools import partial
+
 import operator
 import sublime
-
 
 # tuple of start, end, newText, version
 TextEditTuple = Tuple[Tuple[int, int], Tuple[int, int], str, Optional[int]]
@@ -43,7 +49,7 @@ def parse_text_edit(text_edit: LspTextEdit, version: int = None) -> TextEditTupl
         parse_range(text_edit['range']['end']),
         # Strip away carriage returns -- SublimeText takes care of that.
         text_edit.get('newText', '').replace("\r", ""),
-        version
+        version,
     )
 
 

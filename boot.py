@@ -1,8 +1,3 @@
-import os
-import sublime
-import sublime_plugin
-import weakref
-
 # Please keep this list sorted (Edit -> Sort Lines)
 from .plugin.code_actions import LspCodeActionsCommand
 from .plugin.completion import LspResolveDocsCommand
@@ -35,7 +30,13 @@ from .plugin.core.settings import load_settings
 from .plugin.core.settings import unload_settings
 from .plugin.core.transports import kill_all_subprocesses
 from .plugin.core.types import ClientConfig
-from .plugin.core.typing import Any, Optional, List, Type, Callable, Dict, Tuple
+from .plugin.core.typing import Any
+from .plugin.core.typing import Callable
+from .plugin.core.typing import Dict
+from .plugin.core.typing import List
+from .plugin.core.typing import Optional
+from .plugin.core.typing import Tuple
+from .plugin.core.typing import Type
 from .plugin.core.views import LspRunTextCommandHelperCommand
 from .plugin.documents import DocumentSyncListener
 from .plugin.documents import LspCodeLensCommand
@@ -65,6 +66,11 @@ from .plugin.tooling import LspDumpBufferCapabilities
 from .plugin.tooling import LspDumpWindowConfigs
 from .plugin.tooling import LspParseVscodePackageJson
 from .plugin.tooling import LspTroubleshootServerCommand
+
+import os
+import sublime
+import sublime_plugin
+import weakref
 
 
 def _get_final_subclasses(derived: List[Type], results: List[Type]) -> None:
@@ -99,7 +105,7 @@ def _register_all_plugins() -> None:
             def configuration(cls) -> Tuple[sublime.Settings, str]:
                 file_base_name = cls.name()
                 if file_base_name.startswith("lsp-"):
-                    file_base_name = "LSP-" + file_base_name[len("lsp-"):]
+                    file_base_name = "LSP-" + file_base_name[len("lsp-") :]
                 settings = sublime.load_settings("{}.sublime-settings".format(file_base_name))
                 cfg = cls.handler.config  # type: ignore
                 settings.set("command", cfg.command)
@@ -116,8 +122,13 @@ def _register_all_plugins() -> None:
                 return settings, "Packages/{0}/{0}.sublime-settings".format(file_base_name)
 
             @classmethod
-            def can_start(cls, window: sublime.Window, initiating_view: sublime.View,
-                          workspace_folders: List[WorkspaceFolder], configuration: ClientConfig) -> Optional[str]:
+            def can_start(
+                cls,
+                window: sublime.Window,
+                initiating_view: sublime.View,
+                workspace_folders: List[WorkspaceFolder],
+                configuration: ClientConfig,
+            ) -> Optional[str]:
                 if hasattr(cls.handler, 'on_start'):
                     if not cls.handler.on_start(window):  # type: ignore
                         return "{} cannot start".format(cls.name())
@@ -144,6 +155,7 @@ def _register_all_plugins() -> None:
 
 def _unregister_all_plugins() -> None:
     from LSP.plugin.core.sessions import _plugins
+
     _plugins.clear()
     client_configs.external.clear()
     client_configs.all.clear()
@@ -171,7 +183,6 @@ def plugin_unloaded() -> None:
 
 
 class Listener(sublime_plugin.EventListener):
-
     def on_exit(self) -> None:
         kill_all_subprocesses()
 
@@ -217,8 +228,10 @@ class Listener(sublime_plugin.EventListener):
                     tup[1](None)
                     break
 
-    def on_post_window_command(self, window: sublime.Window, command_name: str, args: Optional[Dict[str, Any]]) -> None:
+    def on_post_window_command(
+        self, window: sublime.Window, command_name: str, args: Optional[Dict[str, Any]]
+    ) -> None:
         if command_name in ("next_result", "prev_result"):
             view = window.active_view()
             if view:
-                 view.run_command("lsp_hover", {"only_diagnostics": True})
+                view.run_command("lsp_hover", {"only_diagnostics": True})

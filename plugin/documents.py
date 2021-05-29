@@ -23,7 +23,15 @@ from .core.signature_help import SigHelp
 from .core.types import basescope2languageid
 from .core.types import debounced
 from .core.types import FEATURES_TIMEOUT
-from .core.typing import Any, Callable, Optional, Dict, Generator, Iterable, List, Tuple, Union
+from .core.typing import Any
+from .core.typing import Callable
+from .core.typing import Dict
+from .core.typing import Generator
+from .core.typing import Iterable
+from .core.typing import List
+from .core.typing import Optional
+from .core.typing import Tuple
+from .core.typing import Union
 from .core.views import DIAGNOSTIC_SEVERITY
 from .core.views import document_color_params
 from .core.views import first_selection_region
@@ -42,24 +50,24 @@ from .session_view import SessionView
 from functools import partial
 from weakref import WeakSet
 from weakref import WeakValueDictionary
+
 import functools
 import sublime
 import sublime_plugin
 import webbrowser
-
 
 SUBLIME_WORD_MASK = 515
 
 _kind2name = {
     DocumentHighlightKind.Text: "text",
     DocumentHighlightKind.Read: "read",
-    DocumentHighlightKind.Write: "write"
+    DocumentHighlightKind.Write: "write",
 }
 
 _kind2scope = {
     DocumentHighlightKind.Text: "region.bluish markup.highlight.text.lsp",
     DocumentHighlightKind.Read: "region.greenish markup.highlight.read.lsp",
-    DocumentHighlightKind.Write: "region.yellowish markup.highlight.write.lsp"
+    DocumentHighlightKind.Write: "region.yellowish markup.highlight.write.lsp",
 }
 
 Flags = int
@@ -231,7 +239,7 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
         return sorted(result)
 
     def diagnostics_async(
-        self
+        self,
     ) -> Generator[Tuple[SessionBuffer, List[Tuple[Diagnostic, sublime.Region]]], None, None]:
         change_count = self.view.change_count()
         for sb in self.session_buffers_async():
@@ -240,8 +248,7 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
                 yield sb, sb.diagnostics
 
     def diagnostics_intersecting_region_async(
-        self,
-        region: sublime.Region
+        self, region: sublime.Region
     ) -> Tuple[List[Tuple[SessionBuffer, List[Diagnostic]]], sublime.Region]:
         covering = sublime.Region(region.a, region.b)
         result = []  # type: List[Tuple[SessionBuffer, List[Diagnostic]]]
@@ -256,8 +263,7 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
         return result, covering
 
     def diagnostics_touching_point_async(
-        self,
-        pt: int
+        self, pt: int
     ) -> Tuple[List[Tuple[SessionBuffer, List[Diagnostic]]], sublime.Region]:
         covering = sublime.Region(pt, pt)
         result = []  # type: List[Tuple[SessionBuffer, List[Diagnostic]]]
@@ -305,13 +311,16 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
         if not different:
             return
         self._clear_highlight_regions()
-        self._when_selection_remains_stable_async(self._do_highlights_async, current_region,
-                                                  after_ms=self.highlights_debounce_time)
-        self._when_selection_remains_stable_async(self._do_color_boxes_async, current_region,
-                                                  after_ms=self.color_boxes_debounce_time)
+        self._when_selection_remains_stable_async(
+            self._do_highlights_async, current_region, after_ms=self.highlights_debounce_time
+        )
+        self._when_selection_remains_stable_async(
+            self._do_color_boxes_async, current_region, after_ms=self.color_boxes_debounce_time
+        )
         self.do_signature_help_async(manual=False)
-        self._when_selection_remains_stable_async(self._do_code_lenses_async, current_region,
-                                                  after_ms=self.code_lenses_debounce_time)
+        self._when_selection_remains_stable_async(
+            self._do_code_lenses_async, current_region, after_ms=self.code_lenses_debounce_time
+        )
 
     def get_uri(self) -> str:
         return self._uri
@@ -340,12 +349,14 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
         if different:
             if not self._is_in_higlighted_region(current_region.b):
                 self._clear_highlight_regions()
-            self._when_selection_remains_stable_async(self._do_highlights_async, current_region,
-                                                      after_ms=self.highlights_debounce_time)
+            self._when_selection_remains_stable_async(
+                self._do_highlights_async, current_region, after_ms=self.highlights_debounce_time
+            )
             self._clear_code_actions_annotation()
             if userprefs().show_code_actions:
-                self._when_selection_remains_stable_async(self._do_code_actions, current_region,
-                                                          after_ms=self.code_actions_debounce_time)
+                self._when_selection_remains_stable_async(
+                    self._do_code_actions, current_region, after_ms=self.code_actions_debounce_time
+                )
             self._update_diagnostic_in_status_bar_async()
             self._resolve_visible_code_lenses_async()
 
@@ -371,7 +382,9 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
                 if operand == 0:
                     sublime.set_timeout_async(lambda: self.do_signature_help_async(manual=True))
                     return True
-            elif self._sighelp and self._sighelp.has_multiple_signatures() and not self.view.is_auto_complete_visible():
+            elif (
+                self._sighelp and self._sighelp.has_multiple_signatures() and not self.view.is_auto_complete_visible()
+            ):
                 # We use the "operand" for the number -1 or +1. See the keybindings.
                 self._sighelp.select_signature(operand)
                 self._update_sighelp_popup(self._sighelp.render(self.view))
@@ -393,7 +406,6 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
             self.view.hide_popup()
 
     def on_query_completions(self, prefix: str, locations: List[int]) -> Optional[sublime.CompletionList]:
-
         def resolve(clist: sublime.CompletionList, items: List[sublime.CompletionItem], flags: int = 0) -> None:
             # Resolve on the main thread to prevent any sort of data race for _set_target (see sublime_plugin.py).
             sublime.set_timeout(lambda: clist.set_completions(items, flags))
@@ -426,7 +438,8 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
             self.purge_changes_async()
             params = text_document_position_params(self.view, pos)
             session.send_request_async(
-                Request.signatureHelp(params, self.view), lambda resp: self._on_signature_help(resp, pos))
+                Request.signatureHelp(params, self.view), lambda resp: self._on_signature_help(resp, pos)
+            )
         else:
             # TODO: Refactor popup usage to a common class. We now have sigHelp, completionDocs, hover, and diags
             # all using a popup. Most of these systems assume they have exclusive access to a popup, while in
@@ -457,7 +470,8 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
             flags=sublime.HIDE_ON_MOUSE_MOVE_AWAY | sublime.COOPERATE_WITH_AUTO_COMPLETE,
             location=point,
             on_hide=self._on_sighelp_hide,
-            on_navigate=self._on_sighelp_navigate)
+            on_navigate=self._on_sighelp_navigate,
+        )
         self._visible = True
 
     def _update_sighelp_popup(self, content: str) -> None:
@@ -504,7 +518,8 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
         session = self.session("colorProvider")
         if session:
             session.send_request_async(
-                Request.documentColor(document_color_params(self.view), self.view), self._on_color_boxes)
+                Request.documentColor(document_color_params(self.view), self.view), self._on_color_boxes
+            )
 
     def _on_color_boxes(self, response: Any) -> None:
         color_infos = response if response else []
@@ -522,11 +537,11 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
         if command is not None:
             command_name = command.get("command")
             if command_name:
-                annotation = make_command_link("lsp_execute", command["title"], {
-                    "session_name": name,
-                    "command_name": command_name,
-                    "command_args": command.get("arguments")
-                })
+                annotation = make_command_link(
+                    "lsp_execute",
+                    command["title"],
+                    {"session_name": name, "command_name": command_name, "command_args": command.get("arguments")},
+                )
             else:
                 annotation = command["title"]
         else:
@@ -546,8 +561,8 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
                             session.send_notification(Notification("$/cancelRequest", {"id": request_id}))
             name = session.config.name
             session.send_request_async(
-                Request("textDocument/codeLens", params, self.view),
-                lambda r: self._on_code_lenses_async(name, r))
+                Request("textDocument/codeLens", params, self.view), lambda r: self._on_code_lenses_async(name, r)
+            )
 
     def _on_code_lenses_async(self, name: str, response: Optional[List[CodeLens]]) -> None:
         for i in range(0, len(self._code_lenses)):
@@ -582,8 +597,7 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
         self._render_code_lens(name, index, region, code_lens["command"])
 
     def _unresolved_code_lenses(
-        self,
-        visible: sublime.Region
+        self, visible: sublime.Region
     ) -> Generator[Tuple[int, CodeLens, sublime.Region], None, None]:
         for index, tup in enumerate(self._code_lenses):
             code_lens, region = tup
@@ -637,10 +651,8 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
                 if regions:
                     scope = _kind2scope[kind]
                     self.view.add_regions(
-                        "lsp_highlight_{}".format(_kind2name[kind]),
-                        regions,
-                        scope=scope,
-                        flags=flags)
+                        "lsp_highlight_{}".format(_kind2name[kind]), regions, scope=scope, flags=flags
+                    )
 
         sublime.set_timeout(render_highlights_on_main_thread)
 
@@ -663,12 +675,11 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
             completion_promises.append(completion_request())
 
         Promise.all(completion_promises).then(
-            lambda responses: self._on_all_settled(responses, resolve_completion_list))
+            lambda responses: self._on_all_settled(responses, resolve_completion_list)
+        )
 
     def _on_all_settled(
-        self,
-        responses: List[ResolvedCompletions],
-        resolve_completion_list: ResolveCompletionsFn
+        self, responses: List[ResolvedCompletions], resolve_completion_list: ResolveCompletionsFn
     ) -> None:
         LspResolveDocsCommand.completions = {}
         items = []  # type: List[sublime.CompletionItem]
@@ -698,7 +709,8 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
             can_resolve_completion_items = session.has_capability('completionProvider.resolveProvider')
             items.extend(
                 format_completion(response_item, index, can_resolve_completion_items, session.config.name)
-                for index, response_item in enumerate(response_items))
+                for index, response_item in enumerate(response_items)
+            )
         if items:
             flags |= sublime.INHIBIT_REORDER
         if errors:
@@ -832,7 +844,6 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
 
 
 class LspCodeLensCommand(LspTextCommand):
-
     def run(self, edit: sublime.Edit) -> None:
         listener = windows.listener_for_view(self.view)
         if not listener:
@@ -848,13 +859,12 @@ class LspCodeLensCommand(LspTextCommand):
             args = {
                 "session_name": code_lenses[0]["session_name"],
                 "command_name": command["command"],
-                "command_args": command["arguments"]
+                "command_args": command["arguments"],
             }
             self.view.run_command("lsp_execute", args)
         else:
             self.view.show_popup_menu(
-                [c["command"]["title"] for c in code_lenses],  # type: ignore
-                lambda i: self.on_select(code_lenses, i)
+                [c["command"]["title"] for c in code_lenses], lambda i: self.on_select(code_lenses, i)  # type: ignore
             )
 
     def on_select(self, code_lenses: List[CodeLens], index: int) -> None:
@@ -867,6 +877,6 @@ class LspCodeLensCommand(LspTextCommand):
         args = {
             "session_name": code_lens["session_name"],
             "command_name": command["command"],
-            "command_args": command["arguments"]
+            "command_args": command["arguments"],
         }
         self.view.run_command("lsp_execute", args)

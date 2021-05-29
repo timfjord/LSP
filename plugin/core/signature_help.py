@@ -2,10 +2,12 @@ from .logging import debug
 from .protocol import SignatureHelp
 from .protocol import SignatureHelpContext
 from .protocol import SignatureInformation
-from .typing import Optional, List
+from .typing import List
+from .typing import Optional
 from .views import FORMAT_MARKUP_CONTENT
 from .views import FORMAT_STRING
 from .views import minihtml
+
 import html
 import sublime
 
@@ -54,7 +56,7 @@ class SigHelp:
             "triggerKind": trigger_kind,
             "triggerCharacter": trigger_character,
             "isRetrigger": is_retrigger,
-            "activeSignatureHelp": self._state
+            "activeSignatureHelp": self._state,
         }
 
     def has_multiple_signatures(self) -> bool:
@@ -71,8 +73,10 @@ class SigHelp:
 
     def _render_intro(self) -> Optional[str]:
         if len(self._signatures) > 1:
-            fmt = '<p><div style="font-size: 0.9rem"><b>{}</b> of <b>{}</b> overloads ' + \
-                  "(use ↑ ↓ to navigate, press Esc to hide):</div></p>"
+            fmt = (
+                '<p><div style="font-size: 0.9rem"><b>{}</b> of <b>{}</b> overloads '
+                + "(use ↑ ↓ to navigate, press Esc to hide):</div></p>"
+            )
             return fmt.format(
                 self._active_signature_index + 1,
                 len(self._signatures),
@@ -155,7 +159,7 @@ def _wrap_with_scope_style(view: sublime.View, content: str, scope: str, emphasi
     return '<span style="color: {}{}">{}</span>'.format(
         view.style_for_scope(scope)["foreground"],
         '; font-weight: bold; text-decoration: underline' if emphasize else '',
-        html.escape(content, quote=False)
+        html.escape(content, quote=False),
     )
 
 

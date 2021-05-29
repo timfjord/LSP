@@ -1,8 +1,12 @@
-from .typing import Dict, Optional, List, Generator, Tuple
+from .typing import Dict
+from .typing import Generator
+from .typing import List
+from .typing import Optional
+from .typing import Tuple
 from contextlib import contextmanager
+
 import sublime
 import sublime_plugin
-
 
 # about 80 chars per line implies maintaining a buffer of about 40kb per window
 SERVER_PANEL_MAX_LINES = 500
@@ -24,7 +28,7 @@ OUTPUT_PANEL_SETTINGS = {
     "show_definitions": False,
     "tab_size": 4,
     "translate_tabs_to_spaces": False,
-    "word_wrap": False
+    "word_wrap": False,
 }
 
 
@@ -84,8 +88,9 @@ def destroy_output_panels(window: sublime.Window) -> None:
             window.destroy_output_panel(panel_name)
 
 
-def create_panel(window: sublime.Window, name: str, result_file_regex: str, result_line_regex: str,
-                 syntax: str) -> Optional[sublime.View]:
+def create_panel(
+    window: sublime.Window, name: str, result_file_regex: str, result_line_regex: str, syntax: str
+) -> Optional[sublime.View]:
     panel = create_output_panel(window, name)
     if not panel:
         return None
@@ -103,8 +108,9 @@ def create_panel(window: sublime.Window, name: str, result_file_regex: str, resu
     return panel
 
 
-def ensure_panel(window: sublime.Window, name: str, result_file_regex: str, result_line_regex: str,
-                 syntax: str) -> Optional[sublime.View]:
+def ensure_panel(
+    window: sublime.Window, name: str, result_file_regex: str, result_line_regex: str, syntax: str
+) -> Optional[sublime.View]:
     return window.find_output_panel(name) or create_panel(window, name, result_file_regex, result_line_regex, syntax)
 
 
@@ -151,7 +157,7 @@ def log_server_message(window: sublime.Window, prefix: str, message: str) -> Non
     list_len = len(WindowPanelListener.server_log_map[window_id])
     if list_len >= SERVER_PANEL_MAX_LINES:
         # Trim leading items in the list, leaving only the max allowed count.
-        del WindowPanelListener.server_log_map[window_id][:list_len - SERVER_PANEL_MAX_LINES]
+        del WindowPanelListener.server_log_map[window_id][: list_len - SERVER_PANEL_MAX_LINES]
     panel = ensure_server_panel(window)
     if is_server_panel_open(window) and panel:
         update_server_panel(panel, window_id)
@@ -162,7 +168,6 @@ def update_server_panel(panel: sublime.View, window_id: int) -> None:
 
 
 class LspUpdateServerPanelCommand(sublime_plugin.TextCommand):
-
     def run(self, edit: sublime.Edit, window_id: int) -> None:
         to_process = WindowPanelListener.server_log_map.get(window_id) or []
         WindowPanelListener.server_log_map[window_id] = []

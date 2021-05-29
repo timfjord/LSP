@@ -1,6 +1,8 @@
-from os.path import abspath, dirname, join
-import json
+from os.path import abspath
+from os.path import dirname
+from os.path import join
 
+import json
 
 if __name__ == '__main__':
     file = abspath(join(dirname(__file__), '..', 'unittesting.json'))
@@ -14,6 +16,6 @@ if __name__ == '__main__':
             "start_coverage_after_reload": False,
             "show_reload_progress": False,
             "output": None,
-            "generate_html_report": False
+            "generate_html_report": False,
         }
         json.dump(config, fp, indent=4)

@@ -1,9 +1,14 @@
+from .core.edit import sort_by_application_order
+from .core.edit import TextEditTuple
+from .core.logging import debug
+from .core.typing import Any
+from .core.typing import Generator
+from .core.typing import List
+from .core.typing import Optional
+from contextlib import contextmanager
+
 import sublime
 import sublime_plugin
-from .core.edit import sort_by_application_order, TextEditTuple
-from .core.logging import debug
-from .core.typing import List, Optional, Any, Generator
-from contextlib import contextmanager
 
 
 @contextmanager
@@ -20,7 +25,6 @@ def temporary_setting(settings: sublime.Settings, key: str, val: Any) -> Generat
 
 
 class LspApplyDocumentEditCommand(sublime_plugin.TextCommand):
-
     def run(self, edit: Any, changes: Optional[List[TextEditTuple]] = None) -> None:
         # Apply the changes in reverse, so that we don't invalidate the range
         # of any change that we haven't applied yet.
@@ -35,7 +39,7 @@ class LspApplyDocumentEditCommand(sublime_plugin.TextCommand):
                     continue
                 region = sublime.Region(
                     self.view.text_point_utf16(*start, clamp_column=True),
-                    self.view.text_point_utf16(*end, clamp_column=True)
+                    self.view.text_point_utf16(*end, clamp_column=True),
                 )
                 if start[0] > last_row and replacement[0] != '\n':
                     # Handle when a language server (eg gopls) inserts at a row beyond the document

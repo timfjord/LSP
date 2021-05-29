@@ -1,4 +1,12 @@
-from .typing import Callable, Generic, List, Optional, Protocol, Tuple, TypeVar, Union
+from .typing import Callable
+from .typing import Generic
+from .typing import List
+from .typing import Optional
+from .typing import Protocol
+from .typing import Tuple
+from .typing import TypeVar
+from .typing import Union
+
 import functools
 import sublime
 import threading
@@ -74,6 +82,7 @@ class Promise(Generic[T]):
         Arguments:
             resolve_value: The value to resolve the promise with.
         """
+
         def executor_func(resolve_fn: ResolveFunc[T]) -> None:
             resolve_fn(resolve_value)
 
@@ -91,7 +100,6 @@ class Promise(Generic[T]):
 
     @classmethod
     def packaged_task(cls) -> PackagedTask[T]:
-
         class Executor(Generic[TExecutor]):
 
             __slots__ = ("resolver",)
@@ -119,6 +127,7 @@ class Promise(Generic[T]):
         :returns:   A promise that gets resolved when all passed promises gets resolved.
                     Gets passed a list with all resolved values.
         """
+
         def executor(resolve: ResolveFunc[List[T]]) -> None:
             was_resolved = False
 
@@ -168,6 +177,7 @@ class Promise(Generic[T]):
         Arguments:
             onfullfilled: The callback to call when this promise gets resolved.
         """
+
         def callback_wrapper(resolve_fn: ResolveFunc[TResult], resolve_value: T) -> None:
             """A wrapper called when this promise resolves.
 

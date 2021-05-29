@@ -1,13 +1,21 @@
-from LSP.plugin.core.edit import sort_by_application_order, parse_workspace_edit, parse_text_edit
+from LSP.plugin.core.edit import parse_text_edit
+from LSP.plugin.core.edit import parse_workspace_edit
+from LSP.plugin.core.edit import sort_by_application_order
 from LSP.plugin.core.url import filename_to_uri
 from LSP.plugin.edit import temporary_setting
 from test_protocol import LSP_RANGE
+
 import sublime
 import unittest
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from typing import List, Dict, Optional, Any, Iterable
+    from typing import Any
+    from typing import Dict
+    from typing import Iterable
+    from typing import List
+    from typing import Optional
+
     assert List and Dict and Optional and Any and Iterable
 
 LSP_TEXT_EDIT = dict(newText='newText\r\n', range=LSP_RANGE)
@@ -15,19 +23,11 @@ FILENAME = 'C:\\file.py' if sublime.platform() == "windows" else '/file.py'
 URI = filename_to_uri(FILENAME)
 LSP_EDIT_CHANGES = {'changes': {URI: [LSP_TEXT_EDIT]}}
 
-LSP_EDIT_DOCUMENT_CHANGES = {
-    'documentChanges': [{
-        'textDocument': {'uri': URI},
-        'edits': [LSP_TEXT_EDIT]
-    }]
-}
+LSP_EDIT_DOCUMENT_CHANGES = {'documentChanges': [{'textDocument': {'uri': URI}, 'edits': [LSP_TEXT_EDIT]}]}
 
 LSP_EDIT_DOCUMENT_CHANGES_2 = {
     'changes': None,
-    'documentChanges': [{
-        'textDocument': {'uri': URI},
-        'edits': [LSP_TEXT_EDIT]
-    }]
+    'documentChanges': [{'textDocument': {'uri': URI}, 'edits': [LSP_TEXT_EDIT]}],
 }
 
 # Check that processing document changes does not result in clobbering.
@@ -36,108 +36,48 @@ LSP_EDIT_DOCUMENT_CHANGES_3 = {
         {
             "edits": [
                 {
-                    "range": {
-                        "end": {
-                            "character": 9,
-                            "line": 14
-                        },
-                        "start": {
-                            "character": 5,
-                            "line": 14
-                        }
-                    },
-                    "newText": "Test"
+                    "range": {"end": {"character": 9, "line": 14}, "start": {"character": 5, "line": 14}},
+                    "newText": "Test",
                 }
             ],
-            "textDocument": {
-                "uri": URI,
-                "version": 6
-            }
+            "textDocument": {"uri": URI, "version": 6},
         },
         {
             "edits": [
                 {
-                    "range": {
-                        "end": {
-                            "character": 25,
-                            "line": 11
-                        },
-                        "start": {
-                            "character": 21,
-                            "line": 11
-                        }
-                    },
-                    "newText": "Test"
+                    "range": {"end": {"character": 25, "line": 11}, "start": {"character": 21, "line": 11}},
+                    "newText": "Test",
                 }
             ],
-            "textDocument": {
-                "uri": URI,
-                "version": 6
-            }
+            "textDocument": {"uri": URI, "version": 6},
         },
         {
             "edits": [
                 {
-                    "range": {
-                        "end": {
-                            "character": 32,
-                            "line": 26
-                        },
-                        "start": {
-                            "character": 28,
-                            "line": 26
-                        }
-                    },
-                    "newText": "Test"
+                    "range": {"end": {"character": 32, "line": 26}, "start": {"character": 28, "line": 26}},
+                    "newText": "Test",
                 }
             ],
-            "textDocument": {
-                "uri": URI,
-                "version": 6
-            }
+            "textDocument": {"uri": URI, "version": 6},
         },
         {
             "edits": [
                 {
-                    "range": {
-                        "end": {
-                            "character": 32,
-                            "line": 27
-                        },
-                        "start": {
-                            "character": 28,
-                            "line": 27
-                        }
-                    },
-                    "newText": "Test"
+                    "range": {"end": {"character": 32, "line": 27}, "start": {"character": 28, "line": 27}},
+                    "newText": "Test",
                 }
             ],
-            "textDocument": {
-                "uri": URI,
-                "version": 6
-            }
+            "textDocument": {"uri": URI, "version": 6},
         },
         {
             "edits": [
                 {
-                    "range": {
-                        "end": {
-                            "character": 30,
-                            "line": 39
-                        },
-                        "start": {
-                            "character": 26,
-                            "line": 39
-                        }
-                    },
-                    "newText": "Test"
+                    "range": {"end": {"character": 30, "line": 39}, "start": {"character": 26, "line": 39}},
+                    "newText": "Test",
                 }
             ],
-            "textDocument": {
-                "uri": URI,
-                "version": 6
-            }
-        }
+            "textDocument": {"uri": URI, "version": 6},
+        },
     ]
 }
 
@@ -146,18 +86,14 @@ LSP_EDIT_DOCUMENT_CHANGES_4 = {
         "file:///asdf/foo/bar": [
             {"newText": "hello there", "range": LSP_RANGE},
             {"newText": "general", "range": LSP_RANGE},
-            {"newText": "kenobi", "range": LSP_RANGE}
+            {"newText": "kenobi", "range": LSP_RANGE},
         ]
     },
-    'documentChanges': [{
-        'textDocument': {'uri': URI},
-        'edits': [LSP_TEXT_EDIT]
-    }]
+    'documentChanges': [{'textDocument': {'uri': URI}, 'edits': [LSP_TEXT_EDIT]}],
 }
 
 
 class TextEditTests(unittest.TestCase):
-
     def test_parse_from_lsp(self):
         (start, end, newText, version) = parse_text_edit(LSP_TEXT_EDIT, 0)
         self.assertEqual(newText, 'newText\n')  # Without the \r
@@ -169,7 +105,6 @@ class TextEditTests(unittest.TestCase):
 
 
 class WorkspaceEditTests(unittest.TestCase):
-
     def test_parse_no_changes_from_lsp(self):
         edit = parse_workspace_edit(dict())
         self.assertEqual(len(edit), 0)
@@ -207,16 +142,11 @@ class WorkspaceEditTests(unittest.TestCase):
 
 
 class SortByApplicationOrderTests(unittest.TestCase):
-
     def test_empty_sort(self):
         self.assertEqual(sort_by_application_order([]), [])
 
     def test_sorts_in_application_order(self):
-        edits = [
-            ((0, 0), (0, 0), 'b'),
-            ((0, 0), (0, 0), 'a'),
-            ((0, 2), (0, 2), 'c')
-        ]
+        edits = [((0, 0), (0, 0), 'b'), ((0, 0), (0, 0), 'a'), ((0, 2), (0, 2), 'c')]
         # expect 'c' (higher start), 'a' now reverse order before 'b'
         sorted_edits = sort_by_application_order(edits)
         self.assertEqual(sorted_edits[0][2], 'b')
@@ -233,7 +163,6 @@ class SortByApplicationOrderTests(unittest.TestCase):
 
 
 class TemporarySetting(unittest.TestCase):
-
     def test_basics(self) -> None:
         v = sublime.active_window().active_view()
         s = v.settings()

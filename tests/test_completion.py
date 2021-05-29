@@ -1,28 +1,23 @@
 from copy import deepcopy
 from LSP.plugin.core.protocol import CompletionItemTag
-from LSP.plugin.core.typing import Any, Generator, List, Dict, Callable
+from LSP.plugin.core.typing import Any
+from LSP.plugin.core.typing import Callable
+from LSP.plugin.core.typing import Dict
+from LSP.plugin.core.typing import Generator
+from LSP.plugin.core.typing import List
 from LSP.plugin.core.views import format_completion
 from setup import TextDocumentTestCase
-import sublime
 
+import sublime
 
 additional_edits = {
     'label': 'asdf',
     'additionalTextEdits': [
         {
-            'range': {
-                'start': {
-                    'line': 0,
-                    'character': 0
-                },
-                'end': {
-                    'line': 0,
-                    'character': 0
-                }
-            },
-            'newText': 'import asdf;\n'
+            'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 0}},
+            'newText': 'import asdf;\n',
         }
-    ]
+    ],
 }
 
 
@@ -84,43 +79,36 @@ class QueryCompletionsTests(CompletionsTestsBase):
 
     def test_simple_label(self) -> 'Generator':
         yield from self.verify(
-            completion_items=[{'label': 'asdf'}, {'label': 'efcgh'}],
-            insert_text='',
-            expected_text='asdf')
+            completion_items=[{'label': 'asdf'}, {'label': 'efcgh'}], insert_text='', expected_text='asdf'
+        )
 
     def test_prefer_insert_text_over_label(self) -> 'Generator':
         yield from self.verify(
             completion_items=[{"label": "Label text", "insertText": "Insert text"}],
             insert_text='',
-            expected_text='Insert text')
+            expected_text='Insert text',
+        )
 
     def test_prefer_text_edit_over_insert_text(self) -> 'Generator':
         yield from self.verify(
-            completion_items=[{
-                "label": "Label text",
-                "insertText": "Insert text",
-                "textEdit": {
-                    "newText": "Text edit",
-                    "range": {
-                        "end": {
-                            "character": 5,
-                            "line": 0
-                        },
-                        "start": {
-                            "character": 0,
-                            "line": 0
-                        }
-                    }
+            completion_items=[
+                {
+                    "label": "Label text",
+                    "insertText": "Insert text",
+                    "textEdit": {
+                        "newText": "Text edit",
+                        "range": {"end": {"character": 5, "line": 0}, "start": {"character": 0, "line": 0}},
+                    },
                 }
-            }],
+            ],
             insert_text='',
-            expected_text='Text edit')
+            expected_text='Text edit',
+        )
 
     def test_simple_insert_text(self) -> 'Generator':
         yield from self.verify(
-            completion_items=[{'label': 'asdf', 'insertText': 'asdf()'}],
-            insert_text="a",
-            expected_text='asdf()')
+            completion_items=[{'label': 'asdf', 'insertText': 'asdf()'}], insert_text="a", expected_text='asdf()'
+        )
 
     def test_var_prefix_using_label(self) -> 'Generator':
         yield from self.verify(completion_items=[{'label': '$what'}], insert_text="$", expected_text="$what")
@@ -132,29 +120,29 @@ class QueryCompletionsTests(CompletionsTestsBase):
         User types '$env:U', server replaces '$env:U' with '$env:USERPROFILE'
         """
         yield from self.verify(
-            completion_items=[{
-                'filterText': '$env:USERPROFILE',
-                'insertText': '$env:USERPROFILE',
-                'sortText': '0006USERPROFILE',
-                'label': 'USERPROFILE',
-                'additionalTextEdits': None,
-                'detail': None,
-                'data': None,
-                'kind': 6,
-                'command': None,
-                'textEdit': {
-                    'newText': '$env:USERPROFILE',
-                    'range': {
-                        'end': {'line': 0, 'character': 6},
-                        'start': {'line': 0, 'character': 0}
-                    }
-                },
-                'commitCharacters': None,
-                'range': None,
-                'documentation': None
-            }],
+            completion_items=[
+                {
+                    'filterText': '$env:USERPROFILE',
+                    'insertText': '$env:USERPROFILE',
+                    'sortText': '0006USERPROFILE',
+                    'label': 'USERPROFILE',
+                    'additionalTextEdits': None,
+                    'detail': None,
+                    'data': None,
+                    'kind': 6,
+                    'command': None,
+                    'textEdit': {
+                        'newText': '$env:USERPROFILE',
+                        'range': {'end': {'line': 0, 'character': 6}, 'start': {'line': 0, 'character': 0}},
+                    },
+                    'commitCharacters': None,
+                    'range': None,
+                    'documentation': None,
+                }
+            ],
             insert_text="$env:U",
-            expected_text="$env:USERPROFILE")
+            expected_text="$env:USERPROFILE",
+        )
 
     def test_pure_insertion_text_edit(self) -> 'Generator':
         """
@@ -165,57 +153,54 @@ class QueryCompletionsTests(CompletionsTestsBase):
         THIS TEST FAILS
         """
         yield from self.verify(
-            completion_items=[{
-                'textEdit': {
-                    'newText': 'meParam',
-                    'range': {
-                        'end': {'character': 4, 'line': 0},
-                        'start': {'character': 4, 'line': 0}  # pure insertion!
-                    }
-                },
-                'label': '$someParam',
-                'filterText': None,
-                'data': None,
-                'command': None,
-                'detail': 'null',
-                'insertText': None,
-                'additionalTextEdits': None,
-                'sortText': None,
-                'documentation': None,
-                'kind': 6
-            }],
+            completion_items=[
+                {
+                    'textEdit': {
+                        'newText': 'meParam',
+                        'range': {
+                            'end': {'character': 4, 'line': 0},
+                            'start': {'character': 4, 'line': 0},  # pure insertion!
+                        },
+                    },
+                    'label': '$someParam',
+                    'filterText': None,
+                    'data': None,
+                    'command': None,
+                    'detail': 'null',
+                    'insertText': None,
+                    'additionalTextEdits': None,
+                    'sortText': None,
+                    'documentation': None,
+                    'kind': 6,
+                }
+            ],
             insert_text="$so",
-            expected_text="$someParam")
+            expected_text="$someParam",
+        )
 
     def test_space_added_in_label(self) -> 'Generator':
         """
         Clangd: label=" const", insertText="const" (https://github.com/sublimelsp/LSP/issues/368)
         """
         yield from self.verify(
-            completion_items=[{
-                "label": " const",
-                "sortText": "3f400000const",
-                "kind": 14,
-                "textEdit": {
-                    "newText": "const",
-                    "range": {
-                        "end": {
-                            "character": 1,
-                            "line": 0
-                        },
-                        "start": {
-                            "character": 3,
-                            "line": 0
-                        }
-                    }
-                },
-                "insertTextFormat": 2,
-                "insertText": "const",
-                "filterText": "const",
-                "score": 6
-            }],
+            completion_items=[
+                {
+                    "label": " const",
+                    "sortText": "3f400000const",
+                    "kind": 14,
+                    "textEdit": {
+                        "newText": "const",
+                        "range": {"end": {"character": 1, "line": 0}, "start": {"character": 3, "line": 0}},
+                    },
+                    "insertTextFormat": 2,
+                    "insertText": "const",
+                    "filterText": "const",
+                    "score": 6,
+                }
+            ],
             insert_text=' co',
-            expected_text=" const")  # NOT 'const'
+            expected_text=" const",
+        )  # NOT 'const'
 
     def test_dash_missing_from_label(self) -> 'Generator':
         """
@@ -224,98 +209,86 @@ class QueryCompletionsTests(CompletionsTestsBase):
         (https://github.com/sublimelsp/LSP/issues/572)
         """
         yield from self.verify(
-            completion_items=[{
-                "filterText": "-UniqueId",
-                "documentation": None,
-                "textEdit": {
-                    "range": {
-                        "start": {"character": 0, "line": 0},
-                        "end": {"character": 1, "line": 0}
+            completion_items=[
+                {
+                    "filterText": "-UniqueId",
+                    "documentation": None,
+                    "textEdit": {
+                        "range": {"start": {"character": 0, "line": 0}, "end": {"character": 1, "line": 0}},
+                        "newText": "-UniqueId",
                     },
-                    "newText": "-UniqueId"
-                },
-                "commitCharacters": None,
-                "command": None,
-                "label": "UniqueId",
-                "insertText": "-UniqueId",
-                "additionalTextEdits": None,
-                "data": None,
-                "range": None,
-                "insertTextFormat": 1,
-                "sortText": "0001UniqueId",
-                "kind": 6,
-                "detail": "[string[]]"
-            }],
+                    "commitCharacters": None,
+                    "command": None,
+                    "label": "UniqueId",
+                    "insertText": "-UniqueId",
+                    "additionalTextEdits": None,
+                    "data": None,
+                    "range": None,
+                    "insertTextFormat": 1,
+                    "sortText": "0001UniqueId",
+                    "kind": 6,
+                    "detail": "[string[]]",
+                }
+            ],
             insert_text="u",
-            expected_text="-UniqueId")
+            expected_text="-UniqueId",
+        )
 
     def test_edit_before_cursor(self) -> 'Generator':
         """
         https://github.com/sublimelsp/LSP/issues/536
         """
         yield from self.verify(
-            completion_items=[{
-                'insertTextFormat': 2,
-                'data': {
-                    'symbol': 'example/Foo#myFunction().',
-                    'target': 'file:/home/ayoub/workspace/testproject/?id=root'
-                },
-                'detail': 'override def myFunction(): Unit',
-                'sortText': '00000',
-                'filterText': 'override def myFunction',  # the filterText is tricky here
-                'preselect': True,
-                'label': 'override def myFunction(): Unit',
-                'kind': 2,
-                'additionalTextEdits': [],
-                'textEdit': {
-                    'newText': 'override def myFunction(): Unit = ${0:???}',
-                    'range': {
-                        'start': {
-                            'line': 0,
-                            'character': 0
-                        },
-                        'end': {
-                            'line': 0,
-                            'character': 7
-                        }
-                    }
+            completion_items=[
+                {
+                    'insertTextFormat': 2,
+                    'data': {
+                        'symbol': 'example/Foo#myFunction().',
+                        'target': 'file:/home/ayoub/workspace/testproject/?id=root',
+                    },
+                    'detail': 'override def myFunction(): Unit',
+                    'sortText': '00000',
+                    'filterText': 'override def myFunction',  # the filterText is tricky here
+                    'preselect': True,
+                    'label': 'override def myFunction(): Unit',
+                    'kind': 2,
+                    'additionalTextEdits': [],
+                    'textEdit': {
+                        'newText': 'override def myFunction(): Unit = ${0:???}',
+                        'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 7}},
+                    },
                 }
-            }],
+            ],
             insert_text='def myF',
-            expected_text='override def myFunction(): Unit = ???')
+            expected_text='override def myFunction(): Unit = ???',
+        )
 
     def test_edit_after_nonword(self) -> 'Generator':
         """
         https://github.com/sublimelsp/LSP/issues/645
         """
         yield from self.verify(
-            completion_items=[{
-                "textEdit": {
-                    "newText": "apply($0)",
-                    "range": {
-                        "end": {
-                            "line": 0,
-                            "character": 5
-                        },
-                        "start": {
-                            "line": 0,
-                            "character": 5
-                        }
-                    }
-                },
-                "label": "apply[A](xs: A*): List[A]",
-                "sortText": "00000",
-                "preselect": True,
-                "insertTextFormat": 2,
-                "filterText": "apply",
-                "data": {
-                    "symbol": "scala/collection/immutable/List.apply().",
-                    "target": "file:/home/user/workspace/testproject/?id=root"
-                },
-                "kind": 2
-            }],
+            completion_items=[
+                {
+                    "textEdit": {
+                        "newText": "apply($0)",
+                        "range": {"end": {"line": 0, "character": 5}, "start": {"line": 0, "character": 5}},
+                    },
+                    "label": "apply[A](xs: A*): List[A]",
+                    "sortText": "00000",
+                    "preselect": True,
+                    "insertTextFormat": 2,
+                    "filterText": "apply",
+                    "data": {
+                        "symbol": "scala/collection/immutable/List.apply().",
+                        "target": "file:/home/user/workspace/testproject/?id=root",
+                    },
+                    "kind": 2,
+                }
+            ],
             insert_text="List.",
-            expected_text='List.apply()')
+            expected_text='List.apply()',
+        )
 
     def test_filter_text_is_not_a_prefix_of_label(self) -> 'Generator':
         """
@@ -334,75 +307,63 @@ class QueryCompletionsTests(CompletionsTestsBase):
         https://github.com/sublimelsp/LSP/issues/771
         """
         yield from self.verify(
-            completion_items=[{
-                "label": "Implement all members",
-                "kind": 12,
-                "sortText": "00002",
-                "filterText": "e",
-                "insertTextFormat": 2,
-                "textEdit": {
-                    "range": {
-                        "start": {"line": 0, "character": 0},
-                        "end": {"line": 0, "character": 1}
+            completion_items=[
+                {
+                    "label": "Implement all members",
+                    "kind": 12,
+                    "sortText": "00002",
+                    "filterText": "e",
+                    "insertTextFormat": 2,
+                    "textEdit": {
+                        "range": {"start": {"line": 0, "character": 0}, "end": {"line": 0, "character": 1}},
+                        "newText": "def foo: Int \u003d ${0:???}\n   def boo: Int \u003d ${0:???}",
                     },
-                    "newText": "def foo: Int \u003d ${0:???}\n   def boo: Int \u003d ${0:???}"
-                },
-                "data": {
-                    "target": "file:/Users/ckipp/Documents/scala-workspace/test-project/?id\u003droot",
-                    "symbol": "local6"
+                    "data": {
+                        "target": "file:/Users/ckipp/Documents/scala-workspace/test-project/?id\u003droot",
+                        "symbol": "local6",
+                    },
                 }
-            }],
+            ],
             insert_text='e',
-            expected_text='def foo: Int \u003d ???\n   def boo: Int \u003d ???')
+            expected_text='def foo: Int \u003d ???\n   def boo: Int \u003d ???',
+        )
 
     def test_additional_edits_if_session_has_the_resolve_capability(self) -> 'Generator':
-        completion_item = {
-            'label': 'asdf'
-        }
-        self.set_response("completionItem/resolve", {
-            'label': 'asdf',
-            'additionalTextEdits': [
-                {
-                    'range': {
-                        'start': {
-                            'line': 0,
-                            'character': 0
-                        },
-                        'end': {
-                            'line': 0,
-                            'character': 0
-                        }
-                    },
-                    'newText': 'import asdf;\n'
-                }
-            ]
-        })
-        yield from self.verify(
-            completion_items=[completion_item],
-            insert_text='',
-            expected_text='import asdf;\nasdf')
+        completion_item = {'label': 'asdf'}
+        self.set_response(
+            "completionItem/resolve",
+            {
+                'label': 'asdf',
+                'additionalTextEdits': [
+                    {
+                        'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 0}},
+                        'newText': 'import asdf;\n',
+                    }
+                ],
+            },
+        )
+        yield from self.verify(completion_items=[completion_item], insert_text='', expected_text='import asdf;\nasdf')
 
     def test_prefix_should_include_the_dollar_sign(self) -> 'Generator':
         self.set_response(
             'textDocument/completion',
             {
-                "items":
-                [
+                "items": [
                     {
                         "label": "$hello",
-                        "textEdit":
-                        {
+                        "textEdit": {
                             "newText": "$hello",
-                            "range": {"end": {"line": 2, "character": 3}, "start": {"line": 2, "character": 0}}
+                            "range": {"end": {"line": 2, "character": 3}, "start": {"line": 2, "character": 0}},
                         },
                         "data": 2369386987913238,
                         "detail": "int",
                         "kind": 6,
-                        "sortText": "$hello"
+                        "sortText": "$hello",
                     }
                 ],
-                "isIncomplete": False
-            })
+                "isIncomplete": False,
+            },
+        )
 
         self.type('<?php\n$hello = "world";\n$he\n?>\n')
         # move cursor after `$he|`
@@ -414,47 +375,49 @@ class QueryCompletionsTests(CompletionsTestsBase):
 
     def test_fuzzy_match_plaintext_insert_text(self) -> 'Generator':
         yield from self.verify(
-            completion_items=[{
-                'insertTextFormat': 1,
-                'label': 'aaba',
-                'insertText': 'aaca'
-            }],
+            completion_items=[{'insertTextFormat': 1, 'label': 'aaba', 'insertText': 'aaca'}],
             insert_text='aa',
-            expected_text='aaca')
+            expected_text='aaca',
+        )
 
     def test_fuzzy_match_plaintext_text_edit(self) -> 'Generator':
         yield from self.verify(
-            completion_items=[{
-                'insertTextFormat': 1,
-                'label': 'aaba',
-                'textEdit': {
-                    'newText': 'aaca',
-                    'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 3}}}
-            }],
+            completion_items=[
+                {
+                    'insertTextFormat': 1,
+                    'label': 'aaba',
+                    'textEdit': {
+                        'newText': 'aaca',
+                        'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 3}},
+                    },
+                }
+            ],
             insert_text='aab',
-            expected_text='aaca')
+            expected_text='aaca',
+        )
 
     def test_fuzzy_match_snippet_insert_text(self) -> 'Generator':
         yield from self.verify(
-            completion_items=[{
-                'insertTextFormat': 2,
-                'label': 'aaba',
-                'insertText': 'aaca'
-            }],
+            completion_items=[{'insertTextFormat': 2, 'label': 'aaba', 'insertText': 'aaca'}],
             insert_text='aab',
-            expected_text='aaca')
+            expected_text='aaca',
+        )
 
     def test_fuzzy_match_snippet_text_edit(self) -> 'Generator':
         yield from self.verify(
-            completion_items=[{
-                'insertTextFormat': 2,
-                'label': 'aaba',
-                'textEdit': {
-                    'newText': 'aaca',
-                    'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 3}}}
-            }],
+            completion_items=[
+                {
+                    'insertTextFormat': 2,
+                    'label': 'aaba',
+                    'textEdit': {
+                        'newText': 'aaca',
+                        'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 3}},
+                    },
+                }
+            ],
             insert_text='aab',
-            expected_text='aaca')
+            expected_text='aaca',
+        )
 
     def verify_multi_cursor(self, completion: Dict[str, Any]) -> 'Generator':
         """
@@ -476,54 +439,55 @@ class QueryCompletionsTests(CompletionsTestsBase):
         self.assertEqual(self.read_file(), 'fmod()\nfmod()\nfmod()')
 
     def test_multi_cursor_plaintext_insert_text(self) -> 'Generator':
-        yield from self.verify_multi_cursor({
-            'insertTextFormat': 1,
-            'label': 'fmod(a, b)',
-            'insertText': 'fmod()'
-        })
+        yield from self.verify_multi_cursor({'insertTextFormat': 1, 'label': 'fmod(a, b)', 'insertText': 'fmod()'})
 
     def test_multi_cursor_plaintext_text_edit(self) -> 'Generator':
-        yield from self.verify_multi_cursor({
-            'insertTextFormat': 1,
-            'label': 'fmod(a, b)',
-            'textEdit': {
-                'newText': 'fmod()',
-                'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 2}}
+        yield from self.verify_multi_cursor(
+            {
+                'insertTextFormat': 1,
+                'label': 'fmod(a, b)',
+                'textEdit': {
+                    'newText': 'fmod()',
+                    'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 2}},
+                },
             }
-        })
+        )
 
     def test_multi_cursor_snippet_insert_text(self) -> 'Generator':
-        yield from self.verify_multi_cursor({
-            'insertTextFormat': 2,
-            'label': 'fmod(a, b)',
-            'insertText': 'fmod($0)'
-        })
+        yield from self.verify_multi_cursor({'insertTextFormat': 2, 'label': 'fmod(a, b)', 'insertText': 'fmod($0)'})
 
     def test_multi_cursor_snippet_text_edit(self) -> 'Generator':
-        yield from self.verify_multi_cursor({
-            'insertTextFormat': 2,
-            'label': 'fmod(a, b)',
-            'textEdit': {
-                'newText': 'fmod($0)',
-                'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 2}}
+        yield from self.verify_multi_cursor(
+            {
+                'insertTextFormat': 2,
+                'label': 'fmod(a, b)',
+                'textEdit': {
+                    'newText': 'fmod($0)',
+                    'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 2}},
+                },
             }
-        })
+        )
 
     def test_nontrivial_text_edit_removal(self) -> 'Generator':
         self.type('#include <u>')
         self.move_cursor(0, 11)  # Put the cursor inbetween 'u' and '>'
-        self.set_response("textDocument/completion", [{
-            'filterText': 'uchar.h>',
-            'label': ' uchar.h>',
-            'textEdit': {
-                # This range should remove "u>" and then insert "uchar.h>"
-                'range': {'start': {'line': 0, 'character': 10}, 'end': {'line': 0, 'character': 12}},
-                'newText': 'uchar.h>'
-            },
-            'insertText': 'uchar.h>',
-            'kind': 17,
-            'insertTextFormat': 2
-        }])
+        self.set_response(
+            "textDocument/completion",
+            [
+                {
+                    'filterText': 'uchar.h>',
+                    'label': ' uchar.h>',
+                    'textEdit': {
+                        # This range should remove "u>" and then insert "uchar.h>"
+                        'range': {'start': {'line': 0, 'character': 10}, 'end': {'line': 0, 'character': 12}},
+                        'newText': 'uchar.h>',
+                    },
+                    'insertText': 'uchar.h>',
+                    'kind': 17,
+                    'insertTextFormat': 2,
+                }
+            ],
+        )
         yield from self.select_completion()
         yield from self.await_message("textDocument/completion")
         self.assertEqual(self.read_file(), '#include <uchar.h>')
@@ -531,18 +495,23 @@ class QueryCompletionsTests(CompletionsTestsBase):
     def test_nontrivial_text_edit_removal_with_buffer_modifications_clangd(self) -> 'Generator':
         self.type('#include <u>')
         self.move_cursor(0, 11)  # Put the cursor inbetween 'u' and '>'
-        self.set_response("textDocument/completion", [{
-            'filterText': 'uchar.h>',
-            'label': ' uchar.h>',
-            'textEdit': {
-                # This range should remove "u>" and then insert "uchar.h>"
-                'range': {'start': {'line': 0, 'character': 10}, 'end': {'line': 0, 'character': 12}},
-                'newText': 'uchar.h>'
-            },
-            'insertText': 'uchar.h>',
-            'kind': 17,
-            'insertTextFormat': 2
-        }])
+        self.set_response(
+            "textDocument/completion",
+            [
+                {
+                    'filterText': 'uchar.h>',
+                    'label': ' uchar.h>',
+                    'textEdit': {
+                        # This range should remove "u>" and then insert "uchar.h>"
+                        'range': {'start': {'line': 0, 'character': 10}, 'end': {'line': 0, 'character': 12}},
+                        'newText': 'uchar.h>',
+                    },
+                    'insertText': 'uchar.h>',
+                    'kind': 17,
+                    'insertTextFormat': 2,
+                }
+            ],
+        )
         self.view.run_command('auto_complete')  # show the AC widget
         yield from self.await_message("textDocument/completion")
         yield 100
@@ -560,19 +529,24 @@ class QueryCompletionsTests(CompletionsTestsBase):
     def test_nontrivial_text_edit_removal_with_buffer_modifications_json(self) -> 'Generator':
         self.type('{"k"}')
         self.move_cursor(0, 3)  # Put the cursor inbetween 'k' and '"'
-        self.set_response("textDocument/completion", [{
-            'kind': 10,
-            'documentation': 'Array of single or multiple keys',
-            'insertTextFormat': 2,
-            'label': 'keys',
-            'textEdit': {
-                # This range should remove '"k"' and then insert '"keys": []'
-                'range': {'start': {'line': 0, 'character': 1}, 'end': {'line': 0, 'character': 4}},
-                'newText': '"keys": [$1]'
-            },
-            "filterText": '"keys"',
-            "insertText": 'keys": [$1]'
-        }])
+        self.set_response(
+            "textDocument/completion",
+            [
+                {
+                    'kind': 10,
+                    'documentation': 'Array of single or multiple keys',
+                    'insertTextFormat': 2,
+                    'label': 'keys',
+                    'textEdit': {
+                        # This range should remove '"k"' and then insert '"keys": []'
+                        'range': {'start': {'line': 0, 'character': 1}, 'end': {'line': 0, 'character': 4}},
+                        'newText': '"keys": [$1]',
+                    },
+                    "filterText": '"keys"',
+                    "insertText": 'keys": [$1]',
+                }
+            ],
+        )
         self.view.run_command('auto_complete')  # show the AC widget
         yield from self.await_message("textDocument/completion")
         yield 100
@@ -586,21 +560,13 @@ class QueryCompletionsTests(CompletionsTestsBase):
         self.assertEqual(self.read_file(), '{"keys": []}')
 
     def test_show_deprecated_flag(self) -> 'Generator':
-        item_with_deprecated_flag = {
-            "label": 'hello',
-            "kind": 2,  # Method
-            "deprecated": True
-        }
+        item_with_deprecated_flag = {"label": 'hello', "kind": 2, "deprecated": True}  # Method
         formatted_completion_item = format_completion(item_with_deprecated_flag, 0, False, "")
         self.assertEqual('⚠', formatted_completion_item.kind[1])
         self.assertEqual('⚠ Method - Deprecated', formatted_completion_item.kind[2])
 
     def test_show_deprecated_tag(self) -> 'Generator':
-        item_with_deprecated_tags = {
-            "label": 'hello',
-            "kind": 2,  # Method
-            "tags": [CompletionItemTag.Deprecated]
-        }
+        item_with_deprecated_tags = {"label": 'hello', "kind": 2, "tags": [CompletionItemTag.Deprecated]}  # Method
         formatted_completion_item = format_completion(item_with_deprecated_tags, 0, False, "")
         self.assertEqual('⚠', formatted_completion_item.kind[1])
         self.assertEqual('⚠ Method - Deprecated', formatted_completion_item.kind[2])
@@ -612,6 +578,7 @@ class QueryCompletionsNoResolverTests(CompletionsTestsBase):
     is that QueryCompletionsTests has the completion item resolve capability enabled
     and the QueryCompletionsNoResolverTests has the resolve capability disabled
     '''
+
     @classmethod
     def get_test_server_capabilities(cls) -> dict:
         capabilities = deepcopy(super().get_test_server_capabilities())
@@ -623,21 +590,9 @@ class QueryCompletionsNoResolverTests(CompletionsTestsBase):
             'label': 'ghjk',
             'additionalTextEdits': [
                 {
-                    'range': {
-                        'start': {
-                            'line': 0,
-                            'character': 0
-                        },
-                        'end': {
-                            'line': 0,
-                            'character': 0
-                        }
-                    },
-                    'newText': 'import ghjk;\n'
+                    'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 0}},
+                    'newText': 'import ghjk;\n',
                 }
-            ]
+            ],
         }
-        yield from self.verify(
-            completion_items=[completion_item],
-            insert_text='',
-            expected_text='import ghjk;\nghjk')
+        yield from self.verify(completion_items=[completion_item], insert_text='', expected_text='import ghjk;\nghjk')

@@ -1,7 +1,8 @@
-import sublime
-import sublime_plugin
 from .core.registry import windows
 from .core.settings import client_configs
+
+import sublime
+import sublime_plugin
 
 
 class LspEnableLanguageServerGloballyCommand(sublime_plugin.WindowCommand):

@@ -5,14 +5,20 @@ from .core.protocol import Request
 from .core.sessions import Session
 from .core.settings import userprefs
 from .core.types import debounced
-from .core.typing import Any, Iterable, List, Tuple, Optional, Dict
+from .core.typing import Any
+from .core.typing import Dict
+from .core.typing import Iterable
+from .core.typing import List
+from .core.typing import Optional
+from .core.typing import Tuple
 from .core.views import DIAGNOSTIC_SEVERITY
 from .core.windows import AbstractViewListener
 from .session_buffer import SessionBuffer
 from weakref import ref
 from weakref import WeakValueDictionary
-import sublime
+
 import functools
+import sublime
 
 DIAGNOSTIC_TAG_VALUES = [v for (k, v) in DiagnosticTag.__dict__.items() if not k.startswith('_')]
 
@@ -101,10 +107,7 @@ class SessionView:
             settings.set(self.AC_TRIGGERS_KEY, triggers)
 
     def _apply_auto_complete_triggers(
-        self,
-        settings: sublime.Settings,
-        trigger_chars: List[str],
-        registration_id: Optional[str] = None
+        self, settings: sublime.Settings, trigger_chars: List[str], registration_id: Optional[str] = None
     ) -> None:
         """This method actually modifies the auto_complete_triggers entries for the view."""
         selector = self.session.config.auto_complete_selector
@@ -116,7 +119,7 @@ class SessionView:
             "selector": selector,
             # This key is not used by Sublime, but is used as a "breadcrumb" to figure out what needs to be removed
             # from the auto_complete_triggers array once the session is stopped.
-            "server": self.session.config.name
+            "server": self.session.config.name,
         }
         if trigger_chars:
             trigger["characters"] = "".join(trigger_chars)
@@ -192,8 +195,9 @@ class SessionView:
             data = data_per_severity.get(severity)
             if data is None:
                 self.view.erase_regions(key)
-            elif ((severity <= userprefs().show_diagnostics_severity_level) and
-                    (data.icon or flags != (sublime.DRAW_NO_FILL | sublime.DRAW_NO_OUTLINE))):
+            elif (severity <= userprefs().show_diagnostics_severity_level) and (
+                data.icon or flags != (sublime.DRAW_NO_FILL | sublime.DRAW_NO_OUTLINE)
+            ):
                 non_tag_regions = data.regions
                 for tag, regions in data.regions_with_tag.items():
                     tag_scope = self.diagnostics_tag_scope(tag)
@@ -216,7 +220,7 @@ class SessionView:
                 functools.partial(self._start_progress_reporter_async, request_id, request.method),
                 timeout_ms=200,
                 condition=lambda: request_id in self.active_requests and request_id not in self.progress,
-                async_thread=True
+                async_thread=True,
             )
 
     def on_request_finished_async(self, request_id: int) -> None:
@@ -256,9 +260,7 @@ class SessionView:
 
     def _start_progress_reporter_async(self, request_id: int, title: str) -> ViewProgressReporter:
         progress = ViewProgressReporter(
-            view=self.view,
-            key="lspprogressview{}{}".format(self.session.config.name, request_id),
-            title=title
+            view=self.view, key="lspprogressview{}{}".format(self.session.config.name, request_id), title=title
         )
         self.progress[request_id] = progress
         return progress

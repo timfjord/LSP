@@ -1,27 +1,31 @@
-from LSP.plugin.core.promise import Promise
 from LSP.plugin.core.logging import debug
-from LSP.plugin.core.protocol import Notification, Request
+from LSP.plugin.core.promise import Promise
+from LSP.plugin.core.protocol import Notification
+from LSP.plugin.core.protocol import Request
 from LSP.plugin.core.registry import windows
 from LSP.plugin.core.settings import client_configs
-from LSP.plugin.core.types import ClientConfig, ClientStates
-from LSP.plugin.core.typing import Any, Generator, List, Optional, Tuple, Union, Dict
+from LSP.plugin.core.types import ClientConfig
+from LSP.plugin.core.types import ClientStates
+from LSP.plugin.core.typing import Any
+from LSP.plugin.core.typing import Dict
+from LSP.plugin.core.typing import Generator
+from LSP.plugin.core.typing import List
+from LSP.plugin.core.typing import Optional
+from LSP.plugin.core.typing import Tuple
+from LSP.plugin.core.typing import Union
 from LSP.plugin.documents import DocumentSyncListener
 from os import environ
 from os.path import join
 from sublime_plugin import view_event_listeners
 from test_mocks import basic_responses
 from unittesting import DeferrableTestCase
-import sublime
 
+import sublime
 
 CI = any(key in environ for key in ("TRAVIS", "CI", "GITHUB_ACTIONS"))
 
 TIMEOUT_TIME = 10000 if CI else 2000
-text_config = ClientConfig(
-    name="textls",
-    selector="text.plain",
-    command=[],
-    tcp_port=None)
+text_config = ClientConfig(name="textls", selector="text.plain", command=[], tcp_port=None)
 
 
 class YieldPromise:
@@ -48,7 +52,8 @@ def make_stdio_test_config() -> ClientConfig:
         name="TEST",
         command=["python3", join("$packages", "LSP", "tests", "server.py")],
         selector="text.plain",
-        enabled=True)
+        enabled=True,
+    )
 
 
 def make_tcp_test_config() -> ClientConfig:
@@ -57,7 +62,8 @@ def make_tcp_test_config() -> ClientConfig:
         command=["python3", join("$packages", "LSP", "tests", "server.py"), "--tcp-port", "$port"],
         selector="text.plain",
         tcp_port=0,  # select a free one for me
-        enabled=True)
+        enabled=True,
+    )
 
 
 def add_config(config):
@@ -79,7 +85,6 @@ def expand(s: str, w: sublime.Window) -> str:
 
 
 class TextDocumentTestCase(DeferrableTestCase):
-
     @classmethod
     def get_stdio_test_config(cls) -> ClientConfig:
         return make_stdio_test_config()
@@ -102,7 +107,8 @@ class TextDocumentTestCase(DeferrableTestCase):
         yield cls.ensure_document_listener_created
         yield {
             "condition": lambda: cls.wm.get_session(cls.config.name, cls.view.file_name()) is not None,
-            "timeout": TIMEOUT_TIME}
+            "timeout": TIMEOUT_TIME,
+        }
         cls.session = cls.wm.get_session(cls.config.name, cls.view.file_name())
         yield {"condition": lambda: cls.session.state == ClientStates.READY, "timeout": TIMEOUT_TIME}
         yield from cls.await_message("initialize")
@@ -207,8 +213,8 @@ class TextDocumentTestCase(DeferrableTestCase):
     def await_run_code_action(self, code_action: Dict[str, Any]) -> Generator:
         promise = YieldPromise()
         sublime.set_timeout_async(
-            lambda: self.session.run_code_action_async(code_action, progress=False).then(
-                promise.fulfill))
+            lambda: self.session.run_code_action_async(code_action, progress=False).then(promise.fulfill)
+        )
         yield from self.await_promise(promise)
 
     def set_response(self, method: str, response: Any) -> None:

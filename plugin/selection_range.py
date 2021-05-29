@@ -3,9 +3,14 @@ from .core.protocol import Request
 from .core.registry import get_position
 from .core.registry import LspTextCommand
 from .core.sessions import method_to_capability
-from .core.typing import Any, Dict, Optional, List, Tuple
+from .core.typing import Any
+from .core.typing import Dict
+from .core.typing import List
+from .core.typing import Optional
+from .core.typing import Tuple
 from .core.views import range_to_region
 from .core.views import selection_range_params
+
 import sublime
 
 
@@ -38,8 +43,14 @@ class LspExpandSelectionCommand(LspTextCommand):
         if self._change_count != self.view.change_count():
             return
         if params:
-            self.view.run_command("lsp_selection_set", {"regions": [
-                self._smallest_containing(region, param) for region, param in zip(self._regions, params)]})
+            self.view.run_command(
+                "lsp_selection_set",
+                {
+                    "regions": [
+                        self._smallest_containing(region, param) for region, param in zip(self._regions, params)
+                    ]
+                },
+            )
         else:
             self._status_message("Nothing to expand")
         self._regions.clear()

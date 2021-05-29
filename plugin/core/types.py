@@ -1,13 +1,25 @@
 from .collections import DottedDict
-from .logging import debug, set_debug_logging
+from .logging import debug
+from .logging import set_debug_logging
 from .protocol import TextDocumentSyncKindNone
-from .typing import Any, Optional, List, Dict, Generator, Callable, Iterable, Union, Set, Tuple, TypeVar
+from .typing import Any
+from .typing import Callable
+from .typing import Dict
+from .typing import Generator
+from .typing import Iterable
+from .typing import List
+from .typing import Optional
+from .typing import Set
+from .typing import Tuple
+from .typing import TypeVar
+from .typing import Union
 from .url import filename_to_uri
 from .url import uri_to_filename
 from threading import RLock
 from wcmatch.glob import BRACE
 from wcmatch.glob import globmatch
 from wcmatch.glob import GLOBSTAR
+
 import contextlib
 import os
 import socket
@@ -49,8 +61,9 @@ def diff(old: Iterable[T], new: Iterable[T]) -> Tuple[Set[T], Set[T]]:
     return added, removed
 
 
-def debounced(f: Callable[[], Any], timeout_ms: int = 0, condition: Callable[[], bool] = lambda: True,
-              async_thread: bool = False) -> None:
+def debounced(
+    f: Callable[[], Any], timeout_ms: int = 0, condition: Callable[[], bool] = lambda: True, async_thread: bool = False
+) -> None:
     """
     Possibly run a function at a later point in time, either on the async thread or on the main thread.
 
@@ -98,14 +111,18 @@ class SettingsRegistration:
 
 
 class Debouncer:
-
     def __init__(self) -> None:
         self._current_id = -1
         self._next_id = 0
         self._current_id_lock = RLock()
 
-    def debounce(self, f: Callable[[], None], timeout_ms: int = 0, condition: Callable[[], bool] = lambda: True,
-                 async_thread: bool = False) -> None:
+    def debounce(
+        self,
+        f: Callable[[], None],
+        timeout_ms: int = 0,
+        condition: Callable[[], bool] = lambda: True,
+        async_thread: bool = False,
+    ) -> None:
         """
         Possibly run a function at a later point in time, either on the async thread or on the main thread.
 
@@ -178,7 +195,6 @@ class Settings:
         self.update(s)
 
     def update(self, s: sublime.Settings) -> None:
-
         def r(name: str, default: Union[bool, int, str, list, dict]) -> None:
             val = s.get(name)
             setattr(self, name, val if isinstance(val, default.__class__) else default)
@@ -265,10 +281,7 @@ class DocumentFilter:
     __slots__ = ("language", "scheme", "pattern")
 
     def __init__(
-        self,
-        language: Optional[str] = None,
-        scheme: Optional[str] = None,
-        pattern: Optional[str] = None
+        self, language: Optional[str] = None, scheme: Optional[str] = None, pattern: Optional[str] = None
     ) -> None:
         self.scheme = scheme
         self.pattern = pattern
@@ -312,8 +325,10 @@ class DocumentSelector:
 # these are the EXCEPTIONS. The general rule is: method foo/bar --> (barProvider, barProvider.id)
 _METHOD_TO_CAPABILITY_EXCEPTIONS = {
     'workspace/symbol': ('workspaceSymbolProvider', None),
-    'workspace/didChangeWorkspaceFolders': ('workspace.workspaceFolders',
-                                            'workspace.workspaceFolders.changeNotifications'),
+    'workspace/didChangeWorkspaceFolders': (
+        'workspace.workspaceFolders',
+        'workspace.workspaceFolders.changeNotifications',
+    ),
     'textDocument/didOpen': ('textDocumentSync.didOpen', None),
     'textDocument/didClose': ('textDocumentSync.didClose', None),
     'textDocument/didChange': ('textDocumentSync.change', None),
@@ -321,7 +336,7 @@ _METHOD_TO_CAPABILITY_EXCEPTIONS = {
     'textDocument/willSave': ('textDocumentSync.willSave', None),
     'textDocument/willSaveWaitUntil': ('textDocumentSync.willSaveWaitUntil', None),
     'textDocument/formatting': ('documentFormattingProvider', None),
-    'textDocument/documentColor': ('colorProvider', None)
+    'textDocument/documentColor': ('colorProvider', None),
 }  # type: Dict[str, Tuple[str, Optional[str]]]
 
 
@@ -395,11 +410,7 @@ class Capabilities(DottedDict):
     """
 
     def register(
-        self,
-        registration_id: str,
-        capability_path: str,
-        registration_path: str,
-        options: Dict[str, Any]
+        self, registration_id: str, capability_path: str, registration_path: str, options: Dict[str, Any]
     ) -> None:
         stored_registration_id = self.get(registration_path)
         if isinstance(stored_registration_id, str):
@@ -409,10 +420,7 @@ class Capabilities(DottedDict):
         self.set(registration_path, registration_id)
 
     def unregister(
-        self,
-        registration_id: str,
-        capability_path: str,
-        registration_path: str
+        self, registration_id: str, capability_path: str, registration_path: str
     ) -> Optional[Dict[str, Any]]:
         stored_registration_id = self.get(registration_path)
         if not isinstance(stored_registration_id, str):
@@ -518,7 +526,7 @@ class TransportConfig:
         command: List[str],
         tcp_port: Optional[int],
         env: Dict[str, str],
-        listener_socket: Optional[socket.socket]
+        listener_socket: Optional[socket.socket],
     ) -> None:
         if not command and not tcp_port:
             raise ValueError('neither "command" nor "tcp_port" is provided; cannot start a language server')
@@ -530,21 +538,23 @@ class TransportConfig:
 
 
 class ClientConfig:
-    def __init__(self,
-                 name: str,
-                 selector: str,
-                 priority_selector: Optional[str] = None,
-                 command: Optional[List[str]] = None,
-                 binary_args: Optional[List[str]] = None,  # DEPRECATED
-                 tcp_port: Optional[int] = None,
-                 auto_complete_selector: Optional[str] = None,
-                 enabled: bool = True,
-                 init_options: DottedDict = DottedDict(),
-                 settings: DottedDict = DottedDict(),
-                 env: Dict[str, str] = {},
-                 experimental_capabilities: Optional[Dict[str, Any]] = None,
-                 disabled_capabilities: DottedDict = DottedDict(),
-                 path_maps: Optional[List[PathMap]] = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        selector: str,
+        priority_selector: Optional[str] = None,
+        command: Optional[List[str]] = None,
+        binary_args: Optional[List[str]] = None,  # DEPRECATED
+        tcp_port: Optional[int] = None,
+        auto_complete_selector: Optional[str] = None,
+        enabled: bool = True,
+        init_options: DottedDict = DottedDict(),
+        settings: DottedDict = DottedDict(),
+        env: Dict[str, str] = {},
+        experimental_capabilities: Optional[Dict[str, Any]] = None,
+        disabled_capabilities: DottedDict = DottedDict(),
+        path_maps: Optional[List[PathMap]] = None,
+    ) -> None:
         self.name = name
         self.selector = selector
         self.priority_selector = priority_selector if priority_selector else self.selector
@@ -590,7 +600,7 @@ class ClientConfig:
             env=read_dict_setting(s, "env", {}),
             experimental_capabilities=s.get("experimental_capabilities"),
             disabled_capabilities=disabled_capabilities,
-            path_maps=PathMap.parse(s.get("path_maps"))
+            path_maps=PathMap.parse(s.get("path_maps")),
         )
 
     @classmethod
@@ -613,7 +623,7 @@ class ClientConfig:
             env=d.get("env", dict()),
             experimental_capabilities=d.get("experimental_capabilities"),
             disabled_capabilities=disabled_capabilities,
-            path_maps=PathMap.parse(d.get("path_maps"))
+            path_maps=PathMap.parse(d.get("path_maps")),
         )
 
     @classmethod
@@ -633,13 +643,13 @@ class ClientConfig:
             auto_complete_selector=override.get("auto_complete_selector", src_config.auto_complete_selector),
             enabled=override.get("enabled", src_config.enabled),
             init_options=DottedDict.from_base_and_override(
-                src_config.init_options, override.get("initializationOptions")),
+                src_config.init_options, override.get("initializationOptions")
+            ),
             settings=DottedDict.from_base_and_override(src_config.settings, override.get("settings")),
             env=override.get("env", src_config.env),
-            experimental_capabilities=override.get(
-                "experimental_capabilities", src_config.experimental_capabilities),
+            experimental_capabilities=override.get("experimental_capabilities", src_config.experimental_capabilities),
             disabled_capabilities=disabled_capabilities,
-            path_maps=path_map_override if path_map_override else src_config.path_maps
+            path_maps=path_map_override if path_map_override else src_config.path_maps,
         )
 
     def resolve_transport_config(self, variables: Dict[str, str]) -> TransportConfig:

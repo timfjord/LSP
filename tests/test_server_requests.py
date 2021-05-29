@@ -3,9 +3,14 @@ from LSP.plugin.core.protocol import TextDocumentSyncKindFull
 from LSP.plugin.core.protocol import TextDocumentSyncKindIncremental
 from LSP.plugin.core.sessions import SessionBufferProtocol
 from LSP.plugin.core.types import ClientConfig
-from LSP.plugin.core.typing import Any, Dict, Generator, Optional, List
+from LSP.plugin.core.typing import Any
+from LSP.plugin.core.typing import Dict
+from LSP.plugin.core.typing import Generator
+from LSP.plugin.core.typing import List
+from LSP.plugin.core.typing import Optional
 from LSP.plugin.core.url import filename_to_uri
 from setup import TextDocumentTestCase
+
 import os
 import sublime
 import tempfile
@@ -27,13 +32,13 @@ def verify(testcase: TextDocumentTestCase, method: str, input_params: Any, expec
 
 
 class ServerRequests(TextDocumentTestCase):
-
     def test_unknown_method(self) -> Generator:
         yield from verify(self, "foobar/qux", {}, {"code": ErrorCode.MethodNotFound, "message": "foobar/qux"})
 
     def test_m_workspace_workspaceFolders(self) -> Generator:
-        expected_output = [{"name": os.path.basename(f), "uri": filename_to_uri(f)}
-                           for f in sublime.active_window().folders()]
+        expected_output = [
+            {"name": os.path.basename(f), "uri": filename_to_uri(f)} for f in sublime.active_window().folders()
+        ]
         self.maxDiff = None
         yield from verify(self, "workspace/workspaceFolders", {}, expected_output)
 
@@ -45,7 +50,6 @@ class ServerRequests(TextDocumentTestCase):
         self.session.config.settings.set("foo.c", ["asdf ${hello} ${world}"])
 
         class TempPlugin:
-
             @classmethod
             def additional_variables(cls) -> Optional[Dict[str, str]]:
                 return {"hello": "X", "world": "Y"}
@@ -61,7 +65,8 @@ class ServerRequests(TextDocumentTestCase):
         old_change_count = self.insert_characters("hello\nworld\n")
         edit = {
             "newText": "there",
-            "range": {"start": {"line": 1, "character": 0}, "end": {"line": 1, "character": 5}}}
+            "range": {"start": {"line": 1, "character": 0}, "end": {"line": 1, "character": 5}},
+        }
         params = {"edit": {"changes": {filename_to_uri(self.view.file_name()): [edit]}}}
         yield from verify(self, "workspace/applyEdit", params, {"applied": True})
         yield lambda: self.view.change_count() > old_change_count
@@ -81,32 +86,42 @@ class ServerRequests(TextDocumentTestCase):
                 {
                     "edit": {
                         "changes": {
-                            filename_to_uri(file_paths[0]):
-                            [
+                            filename_to_uri(file_paths[0]): [
                                 {
-                                    "range": {"start": {"line": 0, "character": 0}, "end": {"line": 0, "character": 1}},
-                                    "newText": "hello"
+                                    "range": {
+                                        "start": {"line": 0, "character": 0},
+                                        "end": {"line": 0, "character": 1},
+                                    },
+                                    "newText": "hello",
                                 },
                                 {
-                                    "range": {"start": {"line": 0, "character": 2}, "end": {"line": 0, "character": 3}},
-                                    "newText": "there"
-                                }
+                                    "range": {
+                                        "start": {"line": 0, "character": 2},
+                                        "end": {"line": 0, "character": 3},
+                                    },
+                                    "newText": "there",
+                                },
                             ],
-                            filename_to_uri(file_paths[1]):
-                            [
+                            filename_to_uri(file_paths[1]): [
                                 {
-                                    "range": {"start": {"line": 0, "character": 0}, "end": {"line": 0, "character": 1}},
-                                    "newText": "general"
+                                    "range": {
+                                        "start": {"line": 0, "character": 0},
+                                        "end": {"line": 0, "character": 1},
+                                    },
+                                    "newText": "general",
                                 },
                                 {
-                                    "range": {"start": {"line": 0, "character": 2}, "end": {"line": 0, "character": 3}},
-                                    "newText": "kenobi"
-                                }
-                            ]
+                                    "range": {
+                                        "start": {"line": 0, "character": 2},
+                                        "end": {"line": 0, "character": 3},
+                                    },
+                                    "newText": "kenobi",
+                                },
+                            ],
                         }
                     }
                 },
-                {"applied": True}
+                {"applied": True},
             )
             # Changes should have been applied
             expected = ["hello there", "general kenobi"]
@@ -124,25 +139,36 @@ class ServerRequests(TextDocumentTestCase):
             self,
             "client/registerCapability",
             {
-                "registrations":
-                [
+                "registrations": [
                     {"method": "foo/bar", "id": "hello"},
                     {"method": "bar/baz", "id": "world", "registerOptions": {"frobnicatable": True}},
                     {"method": "workspace/didChangeWorkspaceFolders", "id": "asdf"},
                     {"method": "textDocument/didOpen", "id": "1"},
-                    {"method": "textDocument/willSaveWaitUntil", "id": "2",
-                     "registerOptions": {"documentSelector": [{"language": "txt"}]}},
-                    {"method": "textDocument/didChange", "id": "adsf",
-                     "registerOptions": {"syncKind": TextDocumentSyncKindFull, "documentSelector": [
-                       {"language": "txt"}
-                     ]}},
-                    {"method": "textDocument/completion", "id": "myCompletionRegistrationId",
-                     "registerOptions": {"triggerCharacters": ["!", "@", "#"], "documentSelector": [
-                       {"language": "txt"}
-                     ]}}
+                    {
+                        "method": "textDocument/willSaveWaitUntil",
+                        "id": "2",
+                        "registerOptions": {"documentSelector": [{"language": "txt"}]},
+                    },
+                    {
+                        "method": "textDocument/didChange",
+                        "id": "adsf",
+                        "registerOptions": {
+                            "syncKind": TextDocumentSyncKindFull,
+                            "documentSelector": [{"language": "txt"}],
+                        },
+                    },
+                    {
+                        "method": "textDocument/completion",
+                        "id": "myCompletionRegistrationId",
+                        "registerOptions": {
+                            "triggerCharacters": ["!", "@", "#"],
+                            "documentSelector": [{"language": "txt"}],
+                        },
+                    },
                 ]
             },
-            None)
+            None,
+        )
         self.assertIn("barProvider", self.session.capabilities)
         self.assertEqual(self.session.capabilities.get("barProvider.id"), "hello")
         self.assertIn("bazProvider", self.session.capabilities)
@@ -168,33 +194,24 @@ class ServerRequests(TextDocumentTestCase):
 
     def test_m_client_unregisterCapability(self) -> Generator:
         yield from verify(
-            self,
-            "client/registerCapability",
-            {"registrations": [{"method": "foo/bar", "id": "hello"}]},
-            None)
+            self, "client/registerCapability", {"registrations": [{"method": "foo/bar", "id": "hello"}]}, None
+        )
         self.assertIn("barProvider", self.session.capabilities)
         yield from verify(
-            self,
-            "client/unregisterCapability",
-            {"unregisterations": [{"method": "foo/bar", "id": "hello"}]},
-            None)
+            self, "client/unregisterCapability", {"unregisterations": [{"method": "foo/bar", "id": "hello"}]}, None
+        )
         self.assertNotIn("barProvider", self.session.capabilities)
 
 
 class ServerRequestsWithAutoCompleteSelector(TextDocumentTestCase):
-
     @classmethod
     def get_stdio_test_config(cls) -> ClientConfig:
         return ClientConfig.from_config(
             super().get_stdio_test_config(),
             {
                 "auto_complete_selector": "punctuation.section",
-                "disabled_capabilities": {
-                    "completionProvider": {
-                        "triggerCharacters": True
-                    }
-                }
-            }
+                "disabled_capabilities": {"completionProvider": {"triggerCharacters": True}},
+            },
         )
 
     def test_m_client_registerCapability(self) -> Generator:
@@ -202,16 +219,20 @@ class ServerRequestsWithAutoCompleteSelector(TextDocumentTestCase):
             self,
             "client/registerCapability",
             {
-                "registrations":
-                [
+                "registrations": [
                     # Note that the triggerCharacters are disabled in the configuration.
-                    {"method": "textDocument/completion", "id": "anotherCompletionRegistrationId",
-                     "registerOptions": {"triggerCharacters": ["!", "@", "#"], "documentSelector": [
-                       {"language": "txt"}
-                     ]}}
+                    {
+                        "method": "textDocument/completion",
+                        "id": "anotherCompletionRegistrationId",
+                        "registerOptions": {
+                            "triggerCharacters": ["!", "@", "#"],
+                            "documentSelector": [{"language": "txt"}],
+                        },
+                    }
                 ]
             },
-            None)
+            None,
+        )
         sb = next(self.session.session_buffers_async())
         # Check that textDocument/completion was registered onto the SessionBuffer
         self.assertEqual(sb.capabilities.get("completionProvider.id"), "anotherCompletionRegistrationId")

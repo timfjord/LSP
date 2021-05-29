@@ -2,6 +2,7 @@ from urllib.parse import urljoin
 from urllib.parse import urlparse
 from urllib.request import pathname2url
 from urllib.request import url2pathname
+
 import os
 
 

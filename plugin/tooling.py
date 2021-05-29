@@ -6,13 +6,19 @@ from .core.transports import Transport
 from .core.transports import TransportCallbacks
 from .core.types import Capabilities
 from .core.types import ClientConfig
-from .core.typing import Any, Callable, Dict, List, Optional, Tuple
+from .core.typing import Any
+from .core.typing import Callable
+from .core.typing import Dict
+from .core.typing import List
+from .core.typing import Optional
+from .core.typing import Tuple
 from .core.version import __version__
 from .core.views import extract_variables
 from .core.views import make_command_link
 from base64 import b64decode
 from base64 import b64encode
 from subprocess import list2cmdline
+
 import json
 import mdpopups
 import os
@@ -82,7 +88,6 @@ def _preprocess_properties(translations: Optional[Dict[str, str]], properties: D
 
 
 class BasePackageNameInputHandler(sublime_plugin.TextInputHandler):
-
     def initial_text(self) -> str:
         return "foobar"
 
@@ -91,7 +96,6 @@ class BasePackageNameInputHandler(sublime_plugin.TextInputHandler):
 
 
 class LspParseVscodePackageJson(sublime_plugin.ApplicationCommand):
-
     def __init__(self) -> None:
         self.view = None  # type: Optional[sublime.View]
 
@@ -125,7 +129,7 @@ class LspParseVscodePackageJson(sublime_plugin.ApplicationCommand):
             return
 
         # There might be a translations file as well.
-        translations_url = base_url[:-len("package.json")] + "package.nls.json"
+        translations_url = base_url[: -len("package.json")] + "package.nls.json"
         try:
             translations = json.loads(urllib.request.urlopen(translations_url).read().decode("utf-8"))
         except Exception:
@@ -215,9 +219,7 @@ class LspParseVscodePackageJson(sublime_plugin.ApplicationCommand):
             "contributions": {
                 "settings": [
                     {
-                        "file_patterns": [
-                            "/LSP-{}.sublime-settings".format(base_package_name)
-                        ],
+                        "file_patterns": ["/LSP-{}.sublime-settings".format(base_package_name)],
                         "schema": {
                             "$id": "sublime://settings/LSP-{}".format(base_package_name),
                             "definitions": {
@@ -225,25 +227,23 @@ class LspParseVscodePackageJson(sublime_plugin.ApplicationCommand):
                                     "properties": {
                                         "settings": {
                                             "additionalProperties": False,
-                                            "properties": {k: v for k, v in properties.items()}
+                                            "properties": {k: v for k, v in properties.items()},
                                         }
                                     },
                                 },
                             },
                             "allOf": [
+                                {"$ref": "sublime://settings/LSP-plugin-base"},
                                 {
-                                    "$ref": "sublime://settings/LSP-plugin-base"
+                                    "$ref": "sublime://settings/LSP-{}#/definitions/PluginConfig".format(
+                                        base_package_name
+                                    )  # noqa: E501
                                 },
-                                {
-                                    "$ref": "sublime://settings/LSP-{}#/definitions/PluginConfig".format(base_package_name)  # noqa: E501
-                                }
-                            ]
-                        }
+                            ],
+                        },
                     },
                     {
-                        "file_patterns": [
-                            "/*.sublime-project"
-                        ],
+                        "file_patterns": ["/*.sublime-project"],
                         "schema": {
                             "properties": {
                                 "settings": {
@@ -251,74 +251,102 @@ class LspParseVscodePackageJson(sublime_plugin.ApplicationCommand):
                                         "LSP": {
                                             "properties": {
                                                 "LSP-{}".format(base_package_name): {
-                                                    "$ref": "sublime://settings/LSP-{}#/definitions/PluginConfig".format(base_package_name)  # noqa: E501
+                                                    "$ref": "sublime://settings/LSP-{}#/definitions/PluginConfig".format(
+                                                        base_package_name
+                                                    )  # noqa: E501
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
-                    }
+                        },
+                    },
                 ]
-            }}
+            }
+        }
         view.run_command(
             "append",
-            {
-                "characters": json.dumps(
-                    sublime_package_json,
-                    indent=2,
-                    separators=(",", ": "),
-                    sort_keys=True)
-            }
+            {"characters": json.dumps(sublime_package_json, indent=2, separators=(",", ": "), sort_keys=True)},
         )
         view.run_command("append", {"characters": "\n"})
         view.set_read_only(True)
 
 
 class LspTroubleshootServerCommand(sublime_plugin.WindowCommand, TransportCallbacks):
-
     def run(self) -> None:
         window = self.window
         active_view = window.active_view()
         configs = windows.lookup(window).get_config_manager().get_configs()
         config_names = [config.name for config in configs]
         if config_names:
-            window.show_quick_panel(config_names, lambda index: self.on_selected(index, configs, active_view),
-                                    placeholder='Select server to troubleshoot')
+            window.show_quick_panel(
+                config_names,
+                lambda index: self.on_selected(index, configs, active_view),
+                placeholder='Select server to troubleshoot',
+            )
 
-    def on_selected(self, selected_index: int, configs: List[ClientConfig],
-                    active_view: Optional[sublime.View]) -> None:
+    def on_selected(
+        self, selected_index: int, configs: List[ClientConfig], active_view: Optional[sublime.View]
+    ) -> None:
         if selected_index == -1:
             return
         config = configs[selected_index]
         output_sheet = mdpopups.new_html_sheet(
-            self.window, 'Server: {}'.format(config.name), '# Running server test...',
-            css=css().sheets, wrapper_class=css().sheets_classname)
+            self.window,
+            'Server: {}'.format(config.name),
+            '# Running server test...',
+            css=css().sheets,
+            wrapper_class=css().sheets_classname,
+        )
         sublime.set_timeout_async(lambda: self.test_run_server_async(config, self.window, active_view, output_sheet))
 
-    def test_run_server_async(self, config: ClientConfig, window: sublime.Window,
-                              active_view: Optional[sublime.View], output_sheet: sublime.HtmlSheet) -> None:
+    def test_run_server_async(
+        self,
+        config: ClientConfig,
+        window: sublime.Window,
+        active_view: Optional[sublime.View],
+        output_sheet: sublime.HtmlSheet,
+    ) -> None:
         server = ServerTestRunner(
-            config, window,
+            config,
+            window,
             lambda resolved_command, output, exit_code: self.update_sheet(
-                config, active_view, output_sheet, resolved_command, output, exit_code))
+                config, active_view, output_sheet, resolved_command, output, exit_code
+            ),
+        )
         # Store the instance so that it's not GC'ed before it's finished.
         self.test_runner = server  # type: Optional[ServerTestRunner]
 
-    def update_sheet(self, config: ClientConfig, active_view: Optional[sublime.View], output_sheet: sublime.HtmlSheet,
-                     resolved_command: List[str], server_output: str, exit_code: int) -> None:
+    def update_sheet(
+        self,
+        config: ClientConfig,
+        active_view: Optional[sublime.View],
+        output_sheet: sublime.HtmlSheet,
+        resolved_command: List[str],
+        server_output: str,
+        exit_code: int,
+    ) -> None:
         self.test_runner = None
         frontmatter = mdpopups.format_frontmatter({'allow_code_wrap': True})
         contents = self.get_contents(config, active_view, resolved_command, server_output, exit_code)
         # The href needs to be encoded to avoid having markdown parser ruin it.
-        copy_link = make_command_link('lsp_copy_to_clipboard_from_base64', '<kbd>Copy to clipboard</kbd>',
-                                      {'contents': b64encode(contents.encode()).decode()})
+        copy_link = make_command_link(
+            'lsp_copy_to_clipboard_from_base64',
+            '<kbd>Copy to clipboard</kbd>',
+            {'contents': b64encode(contents.encode()).decode()},
+        )
         formatted = '{}{}\n{}'.format(frontmatter, copy_link, contents)
         mdpopups.update_html_sheet(output_sheet, formatted, css=css().sheets, wrapper_class=css().sheets_classname)
 
-    def get_contents(self, config: ClientConfig, active_view: Optional[sublime.View], resolved_command: List[str],
-                     server_output: str, exit_code: int) -> str:
+    def get_contents(
+        self,
+        config: ClientConfig,
+        active_view: Optional[sublime.View],
+        resolved_command: List[str],
+        server_output: str,
+        exit_code: int,
+    ) -> str:
         lines = []
 
         def line(s: str) -> None:

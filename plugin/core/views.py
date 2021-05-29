@@ -15,10 +15,20 @@ from .protocol import RangeLsp
 from .protocol import Request
 from .settings import userprefs
 from .types import ClientConfig
-from .typing import Callable, Optional, Dict, Any, Iterable, List, Union, Tuple, Sequence, cast
+from .typing import Any
+from .typing import Callable
+from .typing import cast
+from .typing import Dict
+from .typing import Iterable
+from .typing import List
+from .typing import Optional
+from .typing import Sequence
+from .typing import Tuple
+from .typing import Union
 from .url import filename_to_uri
 from .workspace import is_subpath_of
 from urllib.parse import urlparse
+
 import html
 import itertools
 import linecache
@@ -31,70 +41,70 @@ import tempfile
 
 DIAGNOSTIC_SEVERITY = [
     # Kind       CSS class   Scope for color                        Icon resource
-    ("error",   "errors",   "region.redish markup.error.lsp",      "Packages/LSP/icons/error.png"),
+    ("error", "errors", "region.redish markup.error.lsp", "Packages/LSP/icons/error.png"),
     ("warning", "warnings", "region.yellowish markup.warning.lsp", "Packages/LSP/icons/warning.png"),
-    ("info",    "info",     "region.bluish markup.info.lsp",       "Packages/LSP/icons/info.png"),
-    ("hint",    "hints",    "region.bluish markup.info.hint.lsp",  "Packages/LSP/icons/info.png"),
+    ("info", "info", "region.bluish markup.info.lsp", "Packages/LSP/icons/info.png"),
+    ("hint", "hints", "region.bluish markup.info.hint.lsp", "Packages/LSP/icons/info.png"),
 ]
 
 # The scope names mainly come from http://www.sublimetext.com/docs/3/scope_naming.html
 SYMBOL_KINDS = [
     # ST Kind                    Icon  Display Name      ST Scope
-    (sublime.KIND_ID_NAVIGATION, "f", "File",           "string"),
-    (sublime.KIND_ID_NAMESPACE,  "m", "Module",         "entity.name.namespace"),
-    (sublime.KIND_ID_NAMESPACE,  "n", "Namespace",      "entity.name.namespace"),
-    (sublime.KIND_ID_NAMESPACE,  "p", "Package",        "entity.name.namespace"),
-    (sublime.KIND_ID_TYPE,       "c", "Class",          "entity.name.class"),
-    (sublime.KIND_ID_FUNCTION,   "m", "Method",         "entity.name.function"),
-    (sublime.KIND_ID_VARIABLE,   "p", "Property",       "variable.other.member"),
-    (sublime.KIND_ID_VARIABLE,   "f", "Field",          "variable.other.member"),
-    (sublime.KIND_ID_FUNCTION,   "c", "Constructor",    "entity.name.function.constructor"),
-    (sublime.KIND_ID_TYPE,       "e", "Enum",           "entity.name.enum"),
-    (sublime.KIND_ID_VARIABLE,   "i", "Interface",      "entity.name.interface"),
-    (sublime.KIND_ID_FUNCTION,   "f", "Function",       "entity.name.function"),
-    (sublime.KIND_ID_VARIABLE,   "v", "Variable",       "variable.other.readwrite"),
-    (sublime.KIND_ID_VARIABLE,   "c", "Constant",       "variable.other.constant"),
-    (sublime.KIND_ID_MARKUP,     "s", "String",         "string"),
-    (sublime.KIND_ID_VARIABLE,   "n", "Number",         "constant.numeric"),
-    (sublime.KIND_ID_VARIABLE,   "b", "Boolean",        "constant.language"),
-    (sublime.KIND_ID_TYPE,       "a", "Array",          "meta.sequence"),  # [scope taken from JSON.sublime-syntax]
-    (sublime.KIND_ID_TYPE,       "o", "Object",         "meta.mapping"),  # [scope taken from JSON.sublime-syntax]
-    (sublime.KIND_ID_NAVIGATION, "k", "Key",            "meta.mapping.key string"),  # [from JSON.sublime-syntax]
-    (sublime.KIND_ID_VARIABLE,   "n", "Null",           "constant.language"),
-    (sublime.KIND_ID_VARIABLE,   "e", "Enum Member",    "constant.other.enum"),  # Based on {Java,C#}.sublime-syntax
-    (sublime.KIND_ID_TYPE,       "s", "Struct",         "entity.name.struct"),
-    (sublime.KIND_ID_TYPE,       "e", "Event",          "storage.modifier"),   # [scope taken from C#.sublime-syntax]
-    (sublime.KIND_ID_FUNCTION,   "o", "Operator",       "keyword.operator"),
-    (sublime.KIND_ID_TYPE,       "t", "Type Parameter", "storage.type"),
+    (sublime.KIND_ID_NAVIGATION, "f", "File", "string"),
+    (sublime.KIND_ID_NAMESPACE, "m", "Module", "entity.name.namespace"),
+    (sublime.KIND_ID_NAMESPACE, "n", "Namespace", "entity.name.namespace"),
+    (sublime.KIND_ID_NAMESPACE, "p", "Package", "entity.name.namespace"),
+    (sublime.KIND_ID_TYPE, "c", "Class", "entity.name.class"),
+    (sublime.KIND_ID_FUNCTION, "m", "Method", "entity.name.function"),
+    (sublime.KIND_ID_VARIABLE, "p", "Property", "variable.other.member"),
+    (sublime.KIND_ID_VARIABLE, "f", "Field", "variable.other.member"),
+    (sublime.KIND_ID_FUNCTION, "c", "Constructor", "entity.name.function.constructor"),
+    (sublime.KIND_ID_TYPE, "e", "Enum", "entity.name.enum"),
+    (sublime.KIND_ID_VARIABLE, "i", "Interface", "entity.name.interface"),
+    (sublime.KIND_ID_FUNCTION, "f", "Function", "entity.name.function"),
+    (sublime.KIND_ID_VARIABLE, "v", "Variable", "variable.other.readwrite"),
+    (sublime.KIND_ID_VARIABLE, "c", "Constant", "variable.other.constant"),
+    (sublime.KIND_ID_MARKUP, "s", "String", "string"),
+    (sublime.KIND_ID_VARIABLE, "n", "Number", "constant.numeric"),
+    (sublime.KIND_ID_VARIABLE, "b", "Boolean", "constant.language"),
+    (sublime.KIND_ID_TYPE, "a", "Array", "meta.sequence"),  # [scope taken from JSON.sublime-syntax]
+    (sublime.KIND_ID_TYPE, "o", "Object", "meta.mapping"),  # [scope taken from JSON.sublime-syntax]
+    (sublime.KIND_ID_NAVIGATION, "k", "Key", "meta.mapping.key string"),  # [from JSON.sublime-syntax]
+    (sublime.KIND_ID_VARIABLE, "n", "Null", "constant.language"),
+    (sublime.KIND_ID_VARIABLE, "e", "Enum Member", "constant.other.enum"),  # Based on {Java,C#}.sublime-syntax
+    (sublime.KIND_ID_TYPE, "s", "Struct", "entity.name.struct"),
+    (sublime.KIND_ID_TYPE, "e", "Event", "storage.modifier"),  # [scope taken from C#.sublime-syntax]
+    (sublime.KIND_ID_FUNCTION, "o", "Operator", "keyword.operator"),
+    (sublime.KIND_ID_TYPE, "t", "Type Parameter", "storage.type"),
 ]
 
 COMPLETION_KINDS = [
     # ST Kind                    Icon Display Name
-    (sublime.KIND_ID_MARKUP,     "t", "Text"),
-    (sublime.KIND_ID_FUNCTION,   "m", "Method"),
-    (sublime.KIND_ID_FUNCTION,   "f", "Function"),
-    (sublime.KIND_ID_FUNCTION,   "c", "Constructor"),
-    (sublime.KIND_ID_VARIABLE,   "f", "Field"),
-    (sublime.KIND_ID_VARIABLE,   "v", "Variable"),
-    (sublime.KIND_ID_TYPE,       "c", "Class"),
-    (sublime.KIND_ID_TYPE,       "i", "Interface"),
-    (sublime.KIND_ID_NAMESPACE,  "m", "Module"),
-    (sublime.KIND_ID_VARIABLE,   "p", "Property"),
-    (sublime.KIND_ID_VARIABLE,   "u", "Unit"),
-    (sublime.KIND_ID_VARIABLE,   "v", "Value"),
-    (sublime.KIND_ID_TYPE,       "e", "Enum"),
-    (sublime.KIND_ID_KEYWORD,    "k", "Keyword"),
-    (sublime.KIND_ID_SNIPPET,    "s", "Snippet"),
-    (sublime.KIND_ID_MARKUP,     "c", "Color"),
+    (sublime.KIND_ID_MARKUP, "t", "Text"),
+    (sublime.KIND_ID_FUNCTION, "m", "Method"),
+    (sublime.KIND_ID_FUNCTION, "f", "Function"),
+    (sublime.KIND_ID_FUNCTION, "c", "Constructor"),
+    (sublime.KIND_ID_VARIABLE, "f", "Field"),
+    (sublime.KIND_ID_VARIABLE, "v", "Variable"),
+    (sublime.KIND_ID_TYPE, "c", "Class"),
+    (sublime.KIND_ID_TYPE, "i", "Interface"),
+    (sublime.KIND_ID_NAMESPACE, "m", "Module"),
+    (sublime.KIND_ID_VARIABLE, "p", "Property"),
+    (sublime.KIND_ID_VARIABLE, "u", "Unit"),
+    (sublime.KIND_ID_VARIABLE, "v", "Value"),
+    (sublime.KIND_ID_TYPE, "e", "Enum"),
+    (sublime.KIND_ID_KEYWORD, "k", "Keyword"),
+    (sublime.KIND_ID_SNIPPET, "s", "Snippet"),
+    (sublime.KIND_ID_MARKUP, "c", "Color"),
     (sublime.KIND_ID_NAVIGATION, "f", "File"),
     (sublime.KIND_ID_NAVIGATION, "r", "Reference"),
-    (sublime.KIND_ID_NAMESPACE,  "f", "Folder"),
-    (sublime.KIND_ID_VARIABLE,   "e", "Enum Member"),
-    (sublime.KIND_ID_VARIABLE,   "c", "Constant"),
-    (sublime.KIND_ID_TYPE,       "s", "Struct"),
-    (sublime.KIND_ID_TYPE,       "e", "Event"),
-    (sublime.KIND_ID_KEYWORD,    "o", "Operator"),
-    (sublime.KIND_ID_TYPE,       "t", "Type Parameter"),
+    (sublime.KIND_ID_NAMESPACE, "f", "Folder"),
+    (sublime.KIND_ID_VARIABLE, "e", "Enum Member"),
+    (sublime.KIND_ID_VARIABLE, "c", "Constant"),
+    (sublime.KIND_ID_TYPE, "s", "Struct"),
+    (sublime.KIND_ID_TYPE, "e", "Event"),
+    (sublime.KIND_ID_KEYWORD, "o", "Operator"),
+    (sublime.KIND_ID_TYPE, "t", "Type Parameter"),
 ]
 
 
@@ -154,10 +164,7 @@ def range_to_region(range: Range, view: sublime.View) -> sublime.Region:
 
 
 def region_to_range(view: sublime.View, region: sublime.Region) -> Range:
-    return Range(
-        offset_to_point(view, region.begin()),
-        offset_to_point(view, region.end())
-    )
+    return Range(offset_to_point(view, region.begin()), offset_to_point(view, region.end()))
 
 
 def to_encoded_filename(path: str, position: Position) -> str:
@@ -197,7 +204,6 @@ def location_to_encoded_filename(location: Union[Location, LocationLink]) -> str
 
 
 class MissingFilenameError(Exception):
-
     def __init__(self, view_id: int) -> None:
         super().__init__("View {} has no filename".format(view_id))
         self.view_id = view_id
@@ -242,7 +248,7 @@ def text_document_item(view: sublime.View, language_id: str) -> Dict[str, Any]:
         "uri": uri_from_view(view),
         "languageId": language_id,
         "version": view.change_count(),
-        "text": entire_content(view)
+        "text": entire_content(view),
     }
 
 
@@ -263,14 +269,16 @@ def render_text_change(change: sublime.TextChange) -> Dict[str, Any]:
     return {
         "range": {
             "start": {"line": change.a.row, "character": change.a.col_utf16},
-            "end":   {"line": change.b.row, "character": change.b.col_utf16}},
+            "end": {"line": change.b.row, "character": change.b.col_utf16},
+        },
         "rangeLength": change.len_utf16,
-        "text": change.str
+        "text": change.str,
     }
 
 
-def did_change_text_document_params(view: sublime.View, version: int,
-                                    changes: Optional[Iterable[sublime.TextChange]] = None) -> Dict[str, Any]:
+def did_change_text_document_params(
+    view: sublime.View, version: int, changes: Optional[Iterable[sublime.TextChange]] = None
+) -> Dict[str, Any]:
     content_changes = []  # type: List[Dict[str, Any]]
     result = {"textDocument": versioned_text_document_identifier(view, version), "contentChanges": content_changes}
     if changes is None:
@@ -305,8 +313,9 @@ def did_open(view: sublime.View, language_id: str) -> Notification:
     return Notification.didOpen(did_open_text_document_params(view, language_id))
 
 
-def did_change(view: sublime.View, version: int,
-               changes: Optional[Iterable[sublime.TextChange]] = None) -> Notification:
+def did_change(
+    view: sublime.View, version: int, changes: Optional[Iterable[sublime.TextChange]] = None
+) -> Notification:
     return Notification.didChange(did_change_text_document_params(view, version, changes))
 
 
@@ -340,30 +349,34 @@ def formatting_options(settings: sublime.Settings) -> Dict[str, Any]:
         # Insert a newline character at the end of the file if one does not exist. (since 3.15)
         "insertFinalNewline": settings.get("ensure_newline_at_eof_on_save", False),
         # Trim all newlines after the final newline at the end of the file. (sine 3.15)
-        "trimFinalNewlines": settings.get("ensure_newline_at_eof_on_save", False)
+        "trimFinalNewlines": settings.get("ensure_newline_at_eof_on_save", False),
     }
 
 
 def text_document_formatting(view: sublime.View) -> Request:
-    return Request("textDocument/formatting", {
-        "textDocument": text_document_identifier(view),
-        "options": formatting_options(view.settings())
-    }, view, progress=True)
+    return Request(
+        "textDocument/formatting",
+        {"textDocument": text_document_identifier(view), "options": formatting_options(view.settings())},
+        view,
+        progress=True,
+    )
 
 
 def text_document_range_formatting(view: sublime.View, region: sublime.Region) -> Request:
-    return Request("textDocument/rangeFormatting", {
-        "textDocument": text_document_identifier(view),
-        "options": formatting_options(view.settings()),
-        "range": region_to_range(view, region).to_lsp()
-    }, view, progress=True)
+    return Request(
+        "textDocument/rangeFormatting",
+        {
+            "textDocument": text_document_identifier(view),
+            "options": formatting_options(view.settings()),
+            "range": region_to_range(view, region).to_lsp(),
+        },
+        view,
+        progress=True,
+    )
 
 
 def selection_range_params(view: sublime.View) -> Dict[str, Any]:
-    return {
-        "textDocument": text_document_identifier(view),
-        "positions": [position(view, r.b) for r in view.sel()]
-    }
+    return {"textDocument": text_document_identifier(view), "positions": [position(view, r.b) for r in view.sel()]}
 
 
 def text_document_code_action_params(
@@ -371,16 +384,12 @@ def text_document_code_action_params(
     file_name: str,
     region: sublime.Region,
     diagnostics: Sequence[Diagnostic],
-    on_save_actions: Optional[Sequence[str]] = None
+    on_save_actions: Optional[Sequence[str]] = None,
 ) -> Dict[str, Any]:
     params = {
-        "textDocument": {
-            "uri": filename_to_uri(file_name)
-        },
+        "textDocument": {"uri": filename_to_uri(file_name)},
         "range": region_to_range(view, region).to_lsp(),
-        "context": {
-            "diagnostics": diagnostics
-        }
+        "context": {"diagnostics": diagnostics},
     }
     if on_save_actions:
         params['context']['only'] = on_save_actions
@@ -391,9 +400,17 @@ def text_document_code_action_params(
 LSP_POPUP_SPACER_HTML = '<div class="lsp_popup--spacer"></div>'
 
 
-def show_lsp_popup(view: sublime.View, contents: str, location: int = -1, md: bool = False, flags: int = 0,
-                   css: Optional[str] = None, wrapper_class: Optional[str] = None,
-                   on_navigate: Optional[Callable] = None, on_hide: Optional[Callable] = None) -> None:
+def show_lsp_popup(
+    view: sublime.View,
+    contents: str,
+    location: int = -1,
+    md: bool = False,
+    flags: int = 0,
+    css: Optional[str] = None,
+    wrapper_class: Optional[str] = None,
+    on_navigate: Optional[Callable] = None,
+    on_hide: Optional[Callable] = None,
+) -> None:
     css = css if css is not None else lsp_css().popups
     wrapper_class = wrapper_class if wrapper_class is not None else lsp_css().popups_classname
     contents += LSP_POPUP_SPACER_HTML
@@ -407,11 +424,13 @@ def show_lsp_popup(view: sublime.View, contents: str, location: int = -1, md: bo
         wrapper_class=wrapper_class,
         max_width=int(view.em_width() * float(userprefs().popup_max_characters_width)),
         max_height=int(view.line_height() * float(userprefs().popup_max_characters_height)),
-        on_navigate=on_navigate)
+        on_navigate=on_navigate,
+    )
 
 
-def update_lsp_popup(view: sublime.View, contents: str, md: bool = False, css: Optional[str] = None,
-                     wrapper_class: Optional[str] = None) -> None:
+def update_lsp_popup(
+    view: sublime.View, contents: str, md: bool = False, css: Optional[str] = None, wrapper_class: Optional[str] = None
+) -> None:
     css = css if css is not None else lsp_css().popups
     wrapper_class = wrapper_class if wrapper_class is not None else lsp_css().popups_classname
     contents += LSP_POPUP_SPACER_HTML
@@ -494,22 +513,17 @@ def minihtml(view: sublime.View, content: Union[str, Dict[str, str], list], allo
         frontmatter = {
             "allow_code_wrap": True,
             "markdown_extensions": [
-                {
-                    "pymdownx.escapeall": {
-                        "hardbreak": True,
-                        "nbsp": False
-                    }
-                },
+                {"pymdownx.escapeall": {"hardbreak": True, "nbsp": False}},
                 {
                     "pymdownx.magiclink": {
                         # links are displayed without the initial ftp://, http://, https://, or ftps://.
                         "hide_protocol": True,
                         # GitHub, Bitbucket, and GitLab commit, pull, and issue links are are rendered in a shorthand
                         # syntax.
-                        "repo_url_shortener": True
+                        "repo_url_shortener": True,
                     }
-                }
-            ]
+                },
+            ],
         }
         # Workaround CommonMark deficiency: two spaces followed by a newline should result in a new paragraph.
         result = re.sub('(\\S)  \n', '\\1\n\n', result)
@@ -558,8 +572,13 @@ def make_link(href: str, text: Any, class_name: Optional[str] = None) -> str:
         return "<a href='{}'>{}</a>".format(href, text)
 
 
-def make_command_link(command: str, text: str, command_args: Optional[Dict[str, Any]] = None,
-                      class_name: Optional[str] = None, view: Optional[sublime.View] = None) -> str:
+def make_command_link(
+    command: str,
+    text: str,
+    command_args: Optional[Dict[str, Any]] = None,
+    class_name: Optional[str] = None,
+    view: Optional[sublime.View] = None,
+) -> str:
     if view:
         cmd = "lsp_run_text_command_helper"
         args = {"view_id": view.id(), "command": command, "args": command_args}  # type: Optional[Dict[str, Any]]
@@ -648,7 +667,7 @@ def format_diagnostic_for_panel(diagnostic: Diagnostic) -> Tuple[str, Optional[i
         diagnostic["range"]["start"]["character"] + 1,
         format_severity(diagnostic_severity(diagnostic)),
         lines[0],
-        "".join(formatted)
+        "".join(formatted),
     )
     if href:
         offset = len(result)
@@ -658,9 +677,7 @@ def format_diagnostic_for_panel(diagnostic: Diagnostic) -> Tuple[str, Optional[i
 
 
 def location_to_human_readable(
-    config: ClientConfig,
-    base_dir: Optional[str],
-    location: Union[Location, LocationLink]
+    config: ClientConfig, base_dir: Optional[str], location: Union[Location, LocationLink]
 ) -> str:
     """
     Format an LSP Location (or LocationLink) into a string suitable for a human to read
@@ -671,7 +688,7 @@ def location_to_human_readable(
         fmt = "{}:{}"
         pathname = config.map_server_uri_to_client_path(uri)
         if base_dir and is_subpath_of(pathname, base_dir):
-            pathname = pathname[len(os.path.commonprefix((pathname, base_dir))) + 1:]
+            pathname = pathname[len(os.path.commonprefix((pathname, base_dir))) + 1 :]
     else:
         # https://tools.ietf.org/html/rfc5147
         fmt = "{}#line={}"
@@ -691,7 +708,7 @@ def unpack_href_location(href: str) -> Tuple[str, str, int, int]:
     """
     Return the session name, URI, row, and col_utf16 from an encoded href.
     """
-    session_name, uri_with_fragment = href[len("location:"):].split("@")
+    session_name, uri_with_fragment = href[len("location:") :].split("@")
     uri, fragment = uri_with_fragment.split("#")
     row, col_utf16 = map(int, fragment.split(","))
     return session_name, uri, row, col_utf16
@@ -705,15 +722,11 @@ def is_location_href(href: str) -> bool:
 
 
 def _format_diagnostic_related_info(
-    config: ClientConfig,
-    info: DiagnosticRelatedInformation,
-    base_dir: Optional[str] = None
+    config: ClientConfig, info: DiagnosticRelatedInformation, base_dir: Optional[str] = None
 ) -> str:
     location = info["location"]
     return '<a href="{}">{}</a>: {}'.format(
-        location_to_href(config, location),
-        location_to_human_readable(config, base_dir, location),
-        info["message"]
+        location_to_href(config, location), location_to_human_readable(config, base_dir, location), info["message"]
     )
 
 
@@ -726,16 +739,13 @@ def _with_scope_color(view: sublime.View, text: Any, scope: str) -> str:
 
 
 def format_diagnostic_for_html(
-    view: sublime.View,
-    config: ClientConfig,
-    diagnostic: Diagnostic,
-    base_dir: Optional[str] = None
+    view: sublime.View, config: ClientConfig, diagnostic: Diagnostic, base_dir: Optional[str] = None
 ) -> str:
     formatted = [
         '<pre class="',
         DIAGNOSTIC_SEVERITY[diagnostic_severity(diagnostic) - 1][1],
         '">',
-        text2html(diagnostic["message"])
+        text2html(diagnostic["message"]),
     ]
     code_description = diagnostic.get("codeDescription")
     if code_description:
@@ -751,8 +761,9 @@ def format_diagnostic_for_html(
     related_infos = diagnostic.get("relatedInformation")
     if related_infos:
         formatted.append('<pre class="related_info">')
-        formatted.append("<br>".join(_format_diagnostic_related_info(config, info, base_dir)
-                                     for info in related_infos))
+        formatted.append(
+            "<br>".join(_format_diagnostic_related_info(config, info, base_dir) for info in related_infos)
+        )
         formatted.append("</pre>")
     formatted.append("</pre>")
     return "".join(formatted)
@@ -802,7 +813,8 @@ def format_completion(
         args={"item": item, "session_name": session_name},
         annotation=st_annotation,
         kind=kind,
-        details=st_details)
+        details=st_details,
+    )
     if item.get("textEdit"):
         completion.flags = sublime.COMPLETION_FLAG_KEEP_PREFIX
     return completion

@@ -1,7 +1,7 @@
-from setup import TextDocumentTestCase
+from LSP.plugin.core.protocol import SymbolTag
 from LSP.plugin.core.typing import Generator
 from LSP.plugin.symbols import symbol_information_to_quick_panel_item
-from LSP.plugin.core.protocol import SymbolTag
+from setup import TextDocumentTestCase
 
 
 class DocumentSymbolTests(TextDocumentTestCase):

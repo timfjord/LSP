@@ -8,10 +8,17 @@ from .core.protocol import Request
 from .core.registry import get_position
 from .core.registry import LspTextCommand
 from .core.registry import windows
-from .core.types import PANEL_FILE_REGEX, PANEL_LINE_REGEX
-from .core.typing import Any, Optional, Dict, List
-from .core.views import first_selection_region, range_to_region, get_line
+from .core.types import PANEL_FILE_REGEX
+from .core.types import PANEL_LINE_REGEX
+from .core.typing import Any
+from .core.typing import Dict
+from .core.typing import List
+from .core.typing import Optional
+from .core.views import first_selection_region
+from .core.views import get_line
+from .core.views import range_to_region
 from .core.views import text_document_position_params
+
 import os
 import sublime
 import sublime_plugin
@@ -49,7 +56,7 @@ class LspSymbolRenameCommand(LspTextCommand):
         placeholder: str = "",
         position: Optional[int] = None,
         event: Optional[dict] = None,
-        point: Optional[int] = None
+        point: Optional[int] = None,
     ) -> bool:
         if self.best_session("renameProvider.prepareProvider"):
             # The language server will tell us if the selection is on a valid token.
@@ -79,7 +86,7 @@ class LspSymbolRenameCommand(LspTextCommand):
         placeholder: str = "",
         position: Optional[int] = None,
         event: Optional[dict] = None,
-        point: Optional[int] = None
+        point: Optional[int] = None,
     ) -> None:
         if position is None:
             tmp_pos = get_position(self.view, event, point)
@@ -113,7 +120,7 @@ class LspSymbolRenameCommand(LspTextCommand):
             session.send_request(
                 Request("textDocument/rename", params, self.view, progress=True),
                 # This has to run on the main thread due to calling apply_workspace_edit
-                lambda r: sublime.set_timeout(lambda: self.on_rename_result(r))
+                lambda r: sublime.set_timeout(lambda: self.on_rename_result(r)),
             )
 
     def on_rename_result(self, response: Any) -> None:
@@ -164,10 +171,7 @@ class LspSymbolRenameCommand(LspTextCommand):
             return file_path
 
     def _render_rename_panel(
-        self,
-        changes: Dict[str, List[TextEditTuple]],
-        total_changes: int,
-        file_count: int
+        self, changes: Dict[str, List[TextEditTuple]], total_changes: int, file_count: int
     ) -> None:
         window = self.view.window()
         if not window:
@@ -189,11 +193,10 @@ class LspSymbolRenameCommand(LspTextCommand):
         panel.run_command("lsp_clear_panel")
         window.run_command("show_panel", {"panel": "output.rename"})
         fmt = "{} changes across {} files.\n\n{}"
-        panel.run_command('append', {
-            'characters': fmt.format(total_changes, file_count, characters),
-            'force': True,
-            'scroll_to_end': False
-        })
+        panel.run_command(
+            'append',
+            {'characters': fmt.format(total_changes, file_count, characters), 'force': True, 'scroll_to_end': False},
+        )
 
 
 def ensure_rename_panel(window: sublime.Window) -> Optional[sublime.View]:
@@ -202,5 +205,5 @@ def ensure_rename_panel(window: sublime.Window) -> Optional[sublime.View]:
         name=PanelName.Rename,
         result_file_regex=PANEL_FILE_REGEX,
         result_line_regex=PANEL_LINE_REGEX,
-        syntax="Packages/LSP/Syntaxes/References.sublime-syntax"
+        syntax="Packages/LSP/Syntaxes/References.sublime-syntax",
     )

@@ -1,8 +1,10 @@
+.git-blame-ignore-revs export-ignore
 .github/ export-ignore
 .style.yapf export-ignore
 codecov.yml export-ignore
 docs/ export-ignore
 mypy.ini export-ignore
+pyproject.toml export-ignore
 stubs/ export-ignore
 tests/ export-ignore
 tox.ini export-ignore

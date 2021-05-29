@@ -1,11 +1,21 @@
-from .logging import exception_log, debug
+from .logging import debug
+from .logging import exception_log
 from .types import TCP_CONNECT_TIMEOUT
 from .types import TransportConfig
-from .typing import Dict, Any, Optional, IO, Protocol, List, Callable, Tuple
-from abc import ABCMeta, abstractmethod
+from .typing import Any
+from .typing import Callable
+from .typing import Dict
+from .typing import IO
+from .typing import List
+from .typing import Optional
+from .typing import Protocol
+from .typing import Tuple
+from abc import ABCMeta
+from abc import abstractmethod
 from contextlib import closing
 from functools import partial
 from queue import Queue
+
 import http
 import json
 import os
@@ -19,7 +29,6 @@ import weakref
 
 
 class Transport(metaclass=ABCMeta):
-
     @abstractmethod
     def send(self, payload: Dict[str, Any]) -> None:
         pass
@@ -30,7 +39,6 @@ class Transport(metaclass=ABCMeta):
 
 
 class TransportCallbacks(Protocol):
-
     def on_transport_close(self, exit_code: int, exception: Optional[Exception]) -> None:
         ...
 
@@ -42,9 +50,16 @@ class TransportCallbacks(Protocol):
 
 
 class JsonRpcTransport(Transport):
-
-    def __init__(self, name: str, process: subprocess.Popen, socket: Optional[socket.socket], reader: IO[bytes],
-                 writer: IO[bytes], stderr: Optional[IO[bytes]], callback_object: TransportCallbacks) -> None:
+    def __init__(
+        self,
+        name: str,
+        process: subprocess.Popen,
+        socket: Optional[socket.socket],
+        reader: IO[bytes],
+        writer: IO[bytes],
+        stderr: Optional[IO[bytes]],
+        callback_object: TransportCallbacks,
+    ) -> None:
         self._closed = False
         self._process = process
         self._socket = socket
@@ -176,8 +191,9 @@ class JsonRpcTransport(Transport):
         self._send_queue.put_nowait(None)
 
 
-def create_transport(config: TransportConfig, cwd: Optional[str],
-                     callback_object: TransportCallbacks) -> JsonRpcTransport:
+def create_transport(
+    config: TransportConfig, cwd: Optional[str], callback_object: TransportCallbacks
+) -> JsonRpcTransport:
     if config.tcp_port is not None:
         assert config.tcp_port is not None
         if config.tcp_port < 0:
@@ -198,10 +214,7 @@ def create_transport(config: TransportConfig, cwd: Optional[str],
     if config.listener_socket:
         assert isinstance(config.tcp_port, int) and config.tcp_port > 0
         process, sock, reader, writer = _await_tcp_connection(
-            config.name,
-            config.tcp_port,
-            config.listener_socket,
-            start_subprocess
+            config.name, config.tcp_port, config.listener_socket, start_subprocess
         )
     else:
         process = start_subprocess()
@@ -258,23 +271,12 @@ def _fixup_startup_args(args: List[str]) -> Any:
 
 
 def _start_subprocess(
-    args: List[str],
-    stdin: int,
-    stdout: int,
-    stderr: int,
-    startupinfo: Any,
-    env: Dict[str, str],
-    cwd: Optional[str]
+    args: List[str], stdin: int, stdout: int, stderr: int, startupinfo: Any, env: Dict[str, str], cwd: Optional[str]
 ) -> subprocess.Popen:
     debug("starting {} in {}".format(args, cwd if cwd else os.getcwd()))
     process = subprocess.Popen(
-        args=args,
-        stdin=stdin,
-        stdout=stdout,
-        stderr=stderr,
-        startupinfo=startupinfo,
-        env=env,
-        cwd=cwd)
+        args=args, stdin=stdin, stdout=stdout, stderr=stderr, startupinfo=startupinfo, env=env, cwd=cwd
+    )
     _subprocesses.add(process)
     return process
 
@@ -285,10 +287,7 @@ class _SubprocessData:
 
 
 def _await_tcp_connection(
-    name: str,
-    tcp_port: int,
-    listener_socket: socket.socket,
-    subprocess_starter: Callable[[], subprocess.Popen]
+    name: str, tcp_port: int, listener_socket: socket.socket, subprocess_starter: Callable[[], subprocess.Popen]
 ) -> Tuple[subprocess.Popen, socket.socket, IO[bytes], IO[bytes]]:
 
     # After we have accepted one client connection, we can close the listener socket.
@@ -325,13 +324,9 @@ def _connect_tcp(port: int) -> Optional[socket.socket]:
 
 
 def _encode(d: Dict[str, Any]) -> bytes:
-    return json.dumps(
-        d,
-        ensure_ascii=False,
-        sort_keys=False,
-        check_circular=False,
-        separators=(',', ':')
-    ).encode('utf-8')
+    return json.dumps(d, ensure_ascii=False, sort_keys=False, check_circular=False, separators=(',', ':')).encode(
+        'utf-8'
+    )
 
 
 def _decode(message: bytes) -> Dict[str, Any]:

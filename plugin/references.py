@@ -10,11 +10,15 @@ from .core.settings import userprefs
 from .core.types import ClientConfig
 from .core.types import PANEL_FILE_REGEX
 from .core.types import PANEL_LINE_REGEX
-from .core.typing import Dict, List, Optional, Tuple
+from .core.typing import Dict
+from .core.typing import List
+from .core.typing import Optional
+from .core.typing import Tuple
 from .core.views import get_line
 from .core.views import get_uri_and_position_from_location
 from .core.views import text_document_position_params
 from .locationpicker import LocationPicker
+
 import functools
 import linecache
 import os
@@ -22,8 +26,13 @@ import sublime
 
 
 def ensure_references_panel(window: sublime.Window) -> Optional[sublime.View]:
-    return ensure_panel(window, "references", PANEL_FILE_REGEX, PANEL_LINE_REGEX,
-                        "Packages/" + PLUGIN_NAME + "/Syntaxes/References.sublime-syntax")
+    return ensure_panel(
+        window,
+        "references",
+        PANEL_FILE_REGEX,
+        PANEL_LINE_REGEX,
+        "Packages/" + PLUGIN_NAME + "/Syntaxes/References.sublime-syntax",
+    )
 
 
 class LspSymbolReferencesCommand(LspTextCommand):
@@ -43,12 +52,7 @@ class LspSymbolReferencesCommand(LspTextCommand):
             params['context'] = {"includeDeclaration": False}
             request = Request("textDocument/references", params, self.view, progress=True)
             session.send_request(
-                request,
-                functools.partial(
-                    self._handle_response_async,
-                    self.view.substr(self.view.word(pos)),
-                    session
-                )
+                request, functools.partial(self._handle_response_async, self.view.substr(self.view.word(pos)), session)
             )
 
     def _handle_response_async(self, word: str, session: Session, response: Optional[List[Location]]) -> None:
@@ -92,11 +96,14 @@ class LspSymbolReferencesCommand(LspTextCommand):
         panel.settings().set("result_base_dir", base_dir)
         panel.run_command("lsp_clear_panel")
         window.run_command("show_panel", {"panel": "output.references"})
-        panel.run_command('append', {
-            'characters': "{} references for '{}'\n\n{}".format(references_count, word, characters),
-            'force': True,
-            'scroll_to_end': False
-        })
+        panel.run_command(
+            'append',
+            {
+                'characters': "{} references for '{}'\n\n{}".format(references_count, word, characters),
+                'force': True,
+                'scroll_to_end': False,
+            },
+        )
         # highlight all word occurrences
         regions = panel.find_all(r"\b{}\b".format(word))
         panel.add_regions('ReferenceHighlight', regions, 'comment', flags=sublime.DRAW_OUTLINED)
@@ -110,9 +117,7 @@ def _get_relative_path(base_dir: Optional[str], file_path: str) -> str:
 
 
 def _group_locations_by_uri(
-    window: sublime.Window,
-    config: ClientConfig,
-    locations: List[Location]
+    window: sublime.Window, config: ClientConfig, locations: List[Location]
 ) -> Dict[str, List[Tuple[Point, str]]]:
     """Return a dictionary that groups locations by the URI it belongs."""
     grouped_locations = {}  # type: Dict[str, List[Tuple[Point, str]]]

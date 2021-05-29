@@ -1,6 +1,10 @@
 from .core.registry import LspTextCommand
-from .core.typing import Callable, List, Type
-from abc import ABCMeta, abstractmethod
+from .core.typing import Callable
+from .core.typing import List
+from .core.typing import Type
+from abc import ABCMeta
+from abc import abstractmethod
+
 import sublime
 import sublime_plugin
 
@@ -69,6 +73,7 @@ class LspSaveCommand(LspTextCommand):
     A command used as a substitute for native save command. Runs code actions and document
     formatting before triggering the native save command.
     """
+
     _tasks = []  # type: List[Type[SaveTask]]
 
     @classmethod

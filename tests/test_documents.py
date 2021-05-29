@@ -2,7 +2,8 @@ from LSP.plugin.core.logging import debug
 from LSP.plugin.core.protocol import Request
 from LSP.plugin.core.registry import windows
 from LSP.plugin.core.types import ClientStates
-from LSP.plugin.core.typing import Any, Generator
+from LSP.plugin.core.typing import Any
+from LSP.plugin.core.typing import Generator
 from LSP.plugin.documents import DocumentSyncListener
 from os.path import join
 from setup import add_config
@@ -14,11 +15,11 @@ from setup import TIMEOUT_TIME
 from setup import YieldPromise
 from sublime_plugin import view_event_listeners
 from unittesting import DeferrableTestCase
+
 import sublime
 
 
 class WindowDocumentHandlerTests(DeferrableTestCase):
-
     def ensure_document_listener_created(self) -> bool:
         assert self.view
         # Bug in ST3? Either that, or CI runs with ST window not in focus and that makes ST3 not trigger some
@@ -35,11 +36,7 @@ class WindowDocumentHandlerTests(DeferrableTestCase):
         init_options = {
             "serverResponse": {
                 "capabilities": {
-                    "textDocumentSync": {
-                        "openClose": True,
-                        "change": 1,
-                        "save": True
-                    },
+                    "textDocumentSync": {"openClose": True, "change": 1, "save": True},
                 }
             }
         }
@@ -70,10 +67,12 @@ class WindowDocumentHandlerTests(DeferrableTestCase):
         yield {"condition": self.ensure_document_listener_created, "timeout": TIMEOUT_TIME}
         yield {
             "condition": lambda: self.wm.get_session(self.config1.name, self.view.file_name()) is not None,
-            "timeout": TIMEOUT_TIME}
+            "timeout": TIMEOUT_TIME,
+        }
         yield {
             "condition": lambda: self.wm.get_session(self.config2.name, self.view.file_name()) is not None,
-            "timeout": TIMEOUT_TIME}
+            "timeout": TIMEOUT_TIME,
+        }
         self.session1 = self.wm.get_session(self.config1.name, self.view.file_name())
         self.session2 = self.wm.get_session(self.config2.name, self.view.file_name())
         self.assertIsNotNone(self.session1)

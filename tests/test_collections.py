@@ -1,10 +1,9 @@
-from unittest import TestCase
 from LSP.plugin.core.collections import DottedDict
 from LSP.plugin.core.typing import Any
+from unittest import TestCase
 
 
 class DottedDictTests(TestCase):
-
     def verify(self, d: DottedDict, path: str, value: Any) -> None:
         self.assertEqual(d.get(path), value)
 
@@ -43,21 +42,7 @@ class DottedDictTests(TestCase):
 
     def test_assign(self) -> None:
         d = DottedDict()
-        d.assign({
-            "a": "b",
-            "c": {
-                "x": "a",
-                "y": "b"
-            },
-            "d": {
-                "e": {
-                    "f": {
-                        "a": "b",
-                        "c": "d"
-                    }
-                }
-            }
-        })
+        d.assign({"a": "b", "c": {"x": "a", "y": "b"}, "d": {"e": {"f": {"a": "b", "c": "d"}}}})
         self.verify(d, "a", "b")
         self.verify(d, "c.x", "a")
         self.verify(d, "c.y", "b")
@@ -73,14 +58,7 @@ class DottedDictTests(TestCase):
         d.set("foo.bar.b", "b")
         d.set("foo.bar.c", "c")
         self.verify(d, "foo.bar", {"a": "a", "b": "b", "c": "c"})
-        d.update({
-            "foo": {
-                "bar": {
-                    "a": "x",
-                    "b": "y"
-                }
-            }
-        })
+        d.update({"foo": {"bar": {"a": "x", "b": "y"}}})
         self.verify(d, "foo.bar", {"a": "x", "b": "y", "c": "c"})
 
     def test_as_dict(self) -> None:
@@ -90,19 +68,7 @@ class DottedDictTests(TestCase):
         d.set("foo.bar.a", "b")
         d.set("foo.b.x", "c")
         d.set("foo.b.y", "d")
-        self.assertEqual(d.get(), {
-            "foo": {
-                "bar": {
-                    "baz": 1,
-                    "qux": "asdf",
-                    "a": "b"
-                },
-                "b": {
-                    "x": "c",
-                    "y": "d"
-                }
-            }
-        })
+        self.assertEqual(d.get(), {"foo": {"bar": {"baz": 1, "qux": "asdf", "a": "b"}, "b": {"x": "c", "y": "d"}}})
         d.clear()
         self.assertEqual(d.get(), {})
 

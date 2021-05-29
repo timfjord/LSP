@@ -1,9 +1,10 @@
+from .typing import Optional
+from .typing import Union
+
 import sublime
-from .typing import Optional, Union
 
 
 class ProgressReporter:
-
     def __init__(self, title: str) -> None:
         self.title = title
         self._message = None  # type: Optional[str]
@@ -29,9 +30,14 @@ class ProgressReporter:
 
 
 class ViewProgressReporter(ProgressReporter):
-
-    def __init__(self, view: sublime.View, key: str, title: str, message: Optional[str] = None,
-                 percentage: Union[None, int, float] = None) -> None:
+    def __init__(
+        self,
+        view: sublime.View,
+        key: str,
+        title: str,
+        message: Optional[str] = None,
+        percentage: Union[None, int, float] = None,
+    ) -> None:
         super().__init__(title)
         self._view = view
         self._key = key
@@ -47,9 +53,14 @@ class ViewProgressReporter(ProgressReporter):
 
 
 class WindowProgressReporter(ProgressReporter):
-
-    def __init__(self, window: sublime.Window, key: str, title: str, message: Optional[str] = None,
-                 percentage: Union[None, int, float] = None) -> None:
+    def __init__(
+        self,
+        window: sublime.Window,
+        key: str,
+        title: str,
+        message: Optional[str] = None,
+        percentage: Union[None, int, float] = None,
+    ) -> None:
         super().__init__(title)
         self._window = window
         self._key = key
@@ -68,9 +79,9 @@ class WindowProgressReporter(ProgressReporter):
 
 
 class ApplicationProgressReporter(ProgressReporter):
-
-    def __init__(self, key: str, title: str, message: Optional[str] = None,
-                 percentage: Union[None, int, float] = None) -> None:
+    def __init__(
+        self, key: str, title: str, message: Optional[str] = None, percentage: Union[None, int, float] = None
+    ) -> None:
         super().__init__(title)
         self._key = key
         self.__call__(message, percentage)

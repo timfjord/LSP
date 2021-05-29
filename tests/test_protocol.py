@@ -1,28 +1,21 @@
-from LSP.plugin.core.protocol import (
-    Point, Range, Request, Notification
-)
-import unittest
-from LSP.plugin.core.transports import _encode, _decode
+from LSP.plugin.core.protocol import Notification
+from LSP.plugin.core.protocol import Point
+from LSP.plugin.core.protocol import Range
+from LSP.plugin.core.protocol import Request
+from LSP.plugin.core.transports import _decode
+from LSP.plugin.core.transports import _encode
 
+import unittest
 
 LSP_START_POSITION = {'line': 10, 'character': 4}
 LSP_END_POSITION = {'line': 11, 'character': 3}
 LSP_RANGE = {'start': LSP_START_POSITION, 'end': LSP_END_POSITION}
-LSP_MINIMAL_DIAGNOSTIC = {
-    'message': 'message',
-    'range': LSP_RANGE
-}
+LSP_MINIMAL_DIAGNOSTIC = {'message': 'message', 'range': LSP_RANGE}
 
-LSP_FULL_DIAGNOSTIC = {
-    'message': 'message',
-    'range': LSP_RANGE,
-    'severity': 2,  # warning
-    'source': 'pyls'
-}
+LSP_FULL_DIAGNOSTIC = {'message': 'message', 'range': LSP_RANGE, 'severity': 2, 'source': 'pyls'}  # warning
 
 
 class PointTests(unittest.TestCase):
-
     def test_lsp_conversion(self):
         point = Point.from_lsp(LSP_START_POSITION)
         self.assertEqual(point.row, 10)
@@ -33,7 +26,6 @@ class PointTests(unittest.TestCase):
 
 
 class RangeTests(unittest.TestCase):
-
     def test_lsp_conversion(self):
         range = Range.from_lsp(LSP_RANGE)
         self.assertEqual(range.start.row, 10)
@@ -55,60 +47,30 @@ class RangeTests(unittest.TestCase):
         point = Point.from_lsp({'line': 10, 'character': 1})
         self.assertTrue(range.contains(point))
         # Point out of range with character offset lower than range end
-        range = Range.from_lsp({
-            'start': {'line': 0, 'character': 0},
-            'end': {'line': 1, 'character': 4}
-        })
+        range = Range.from_lsp({'start': {'line': 0, 'character': 0}, 'end': {'line': 1, 'character': 4}})
         point = Point.from_lsp({'line': 12, 'character': 0})
         self.assertFalse(range.contains(point))
         # Point within first line of range.
-        range = Range.from_lsp({
-            'start': {'line': 0, 'character': 0},
-            'end': {'line': 1, 'character': 4}
-        })
+        range = Range.from_lsp({'start': {'line': 0, 'character': 0}, 'end': {'line': 1, 'character': 4}})
         point = Point.from_lsp({'line': 0, 'character': 4})
         self.assertTrue(range.contains(point))
 
     def test_intersects(self):
         # range2 fully contained within range1
-        range1 = Range.from_lsp({
-            'start': {'line': 0, 'character': 0},
-            'end': {'line': 1, 'character': 4}
-        })
-        range2 = Range.from_lsp({
-            'start': {'line': 0, 'character': 2},
-            'end': {'line': 0, 'character': 3}
-        })
+        range1 = Range.from_lsp({'start': {'line': 0, 'character': 0}, 'end': {'line': 1, 'character': 4}})
+        range2 = Range.from_lsp({'start': {'line': 0, 'character': 2}, 'end': {'line': 0, 'character': 3}})
         self.assertTrue(range1.intersects(range2))
         # range2 intersecting end of range 1
-        range1 = Range.from_lsp({
-            'start': {'line': 0, 'character': 0},
-            'end': {'line': 0, 'character': 3}
-        })
-        range2 = Range.from_lsp({
-            'start': {'line': 0, 'character': 2},
-            'end': {'line': 0, 'character': 4}
-        })
+        range1 = Range.from_lsp({'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 3}})
+        range2 = Range.from_lsp({'start': {'line': 0, 'character': 2}, 'end': {'line': 0, 'character': 4}})
         self.assertTrue(range1.intersects(range2))
         # range2 fully outside of range 1
-        range1 = Range.from_lsp({
-            'start': {'line': 0, 'character': 0},
-            'end': {'line': 0, 'character': 3}
-        })
-        range2 = Range.from_lsp({
-            'start': {'line': 2, 'character': 0},
-            'end': {'line': 3, 'character': 0}
-        })
+        range1 = Range.from_lsp({'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 3}})
+        range2 = Range.from_lsp({'start': {'line': 2, 'character': 0}, 'end': {'line': 3, 'character': 0}})
         self.assertFalse(range1.intersects(range2))
         # range2 fully within range 1
-        range1 = Range.from_lsp({
-            'start': {'line': 0, 'character': 10},
-            'end': {'line': 1, 'character': 20}
-        })
-        range2 = Range.from_lsp({
-            'start': {'line': 0, 'character': 21},
-            'end': {'line': 0, 'character': 22}
-        })
+        range1 = Range.from_lsp({'start': {'line': 0, 'character': 10}, 'end': {'line': 1, 'character': 20}})
+        range2 = Range.from_lsp({'start': {'line': 0, 'character': 21}, 'end': {'line': 0, 'character': 22}})
         self.assertTrue(range1.intersects(range2))
 
     def test_extend(self) -> None:
@@ -138,7 +100,6 @@ class EncodingTests(unittest.TestCase):
 
 
 class RequestTests(unittest.TestCase):
-
     def test_initialize(self):
         req = Request.initialize({"param": 1})
         payload = req.to_payload(1)
@@ -157,7 +118,6 @@ class RequestTests(unittest.TestCase):
 
 
 class NotificationTests(unittest.TestCase):
-
     def test_initialized(self):
         notification = Notification.initialized()
         payload = notification.to_payload()

@@ -2,12 +2,12 @@ from LSP.plugin.core.types import diff
 from LSP.plugin.core.types import DocumentSelector
 from LSP.plugin.core.typing import List
 from unittest.mock import MagicMock
+
 import sublime
 import unittest
 
 
 class TestDiff(unittest.TestCase):
-
     def test_add(self) -> None:
         added, removed = diff(("a", "b", "c"), ("a", "b", "c", "d"))
         self.assertEqual(added, set(("d",)))
@@ -41,7 +41,6 @@ class TestDiff(unittest.TestCase):
 
 
 class TestDocumentSelector(unittest.TestCase):
-
     def setUp(self) -> None:
         self._opened_views = []  # type: List[sublime.View]
 
@@ -99,14 +98,20 @@ class TestDocumentSelector(unittest.TestCase):
     def test_pattern_grouping(self) -> None:
         """`{}` to group conditions (e.g. `**/*.{ts,js}` matches all TypeScript and JavaScript files)"""
         selector = DocumentSelector([{"pattern": "**/*.{ts,js}"}])
-        self.assertTrue(selector.matches(self._make_view(
-            "Packages/JavaScript/TypeScript.sublime-syntax", "foo/bar.ts")))
-        self.assertTrue(selector.matches(self._make_view(
-            "Packages/JavaScript/JavaScript.sublime-syntax", "asdf/qwerty.js")))
-        self.assertFalse(selector.matches(self._make_view(
-            "Packages/JavaScript/TypeScript.sublime-syntax", "foo/bar.no-match-ts")))
-        self.assertFalse(selector.matches(self._make_view(
-            "Packages/JavaScript/JavaScript.sublime-syntax", "asdf/qwerty.no-match-js")))
+        self.assertTrue(
+            selector.matches(self._make_view("Packages/JavaScript/TypeScript.sublime-syntax", "foo/bar.ts"))
+        )
+        self.assertTrue(
+            selector.matches(self._make_view("Packages/JavaScript/JavaScript.sublime-syntax", "asdf/qwerty.js"))
+        )
+        self.assertFalse(
+            selector.matches(self._make_view("Packages/JavaScript/TypeScript.sublime-syntax", "foo/bar.no-match-ts"))
+        )
+        self.assertFalse(
+            selector.matches(
+                self._make_view("Packages/JavaScript/JavaScript.sublime-syntax", "asdf/qwerty.no-match-js")
+            )
+        )
 
     def test_pattern_character_range(self) -> None:
         """

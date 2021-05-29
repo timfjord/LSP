@@ -1,11 +1,14 @@
 from .protocol import Response
 from .sessions import Session
-from .typing import Any, List, Callable
+from .typing import Any
+from .typing import Callable
+from .typing import List
 from .views import show_lsp_popup
+
 import sublime
 
 
-class MessageRequestHandler():
+class MessageRequestHandler:
     def __init__(self, view: sublime.View, session: Session, request_id: Any, params: dict, source: str) -> None:
         self.session = session
         self.request_id = request_id
@@ -37,18 +40,13 @@ class MessageRequestHandler():
             self.message,
             self.titles,
             self._send_user_choice,
-            self._send_user_choice
+            self._send_user_choice,
         )
 
 
 def message_content(source: str, message_type: int, message: str, titles: List[str]) -> str:
     formatted = []
-    icons = {
-        1: '❗',
-        2: '⚠️',
-        3: 'ℹ️',
-        4: '📝'
-    }
+    icons = {1: '❗', 2: '⚠️', 3: 'ℹ️', 4: '📝'}
     icon = icons.get(message_type, '')
     formatted.append("<h2>{}</h2>".format(source))
     formatted.append("<p class='message'>{} {}</p>".format(icon, message))
@@ -62,14 +60,17 @@ def message_content(source: str, message_type: int, message: str, titles: List[s
     return "".join(formatted)
 
 
-def show_notification(view: sublime.View, source: str, message_type: int, message: str, titles: List[str],
-                      on_navigate: Callable, on_hide: Callable) -> None:
+def show_notification(
+    view: sublime.View,
+    source: str,
+    message_type: int,
+    message: str,
+    titles: List[str],
+    on_navigate: Callable,
+    on_hide: Callable,
+) -> None:
     stylesheet = sublime.load_resource("Packages/LSP/notification.css")
     contents = message_content(source, message_type, message, titles)
     show_lsp_popup(
-        view,
-        contents,
-        css=stylesheet,
-        wrapper_class='notification',
-        on_navigate=on_navigate,
-        on_hide=on_hide)
+        view, contents, css=stylesheet, wrapper_class='notification', on_navigate=on_navigate, on_hide=on_hide
+    )

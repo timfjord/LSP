@@ -2,15 +2,18 @@ from .logging import exception_log
 from .promise import PackagedTask
 from .promise import Promise
 from .promise import ResolveFunc
-from .protocol import Range, RangeLsp
-from .typing import Dict, Tuple, Optional
+from .protocol import Range
+from .protocol import RangeLsp
+from .typing import Dict
+from .typing import Optional
+from .typing import Tuple
 from .url import uri_to_filename
 from .views import range_to_region
+
 import os
 import sublime
 import subprocess
 import webbrowser
-
 
 opening_files = {}  # type: Dict[str, Tuple[Promise[Optional[sublime.View]], ResolveFunc[Optional[sublime.View]]]]
 
@@ -50,8 +53,9 @@ def center_selection(v: sublime.View, r: RangeLsp) -> sublime.View:
     return v
 
 
-def open_file_and_center(window: sublime.Window, file_path: str, r: Optional[RangeLsp], flags: int = 0,
-                         group: int = -1) -> Promise[Optional[sublime.View]]:
+def open_file_and_center(
+    window: sublime.Window, file_path: str, r: Optional[RangeLsp], flags: int = 0, group: int = -1
+) -> Promise[Optional[sublime.View]]:
     """Open a file asynchronously and center the range. It is only safe to call this function from the UI thread."""
 
     def center(v: Optional[sublime.View]) -> Optional[sublime.View]:
@@ -63,15 +67,14 @@ def open_file_and_center(window: sublime.Window, file_path: str, r: Optional[Ran
     return open_file(window, file_path, flags, group).then(center)
 
 
-def open_file_and_center_async(window: sublime.Window, file_path: str, r: Optional[RangeLsp], flags: int = 0,
-                               group: int = -1) -> Promise[Optional[sublime.View]]:
+def open_file_and_center_async(
+    window: sublime.Window, file_path: str, r: Optional[RangeLsp], flags: int = 0, group: int = -1
+) -> Promise[Optional[sublime.View]]:
     """Open a file asynchronously and center the range, worker thread version."""
     pair = Promise.packaged_task()  # type: PackagedTask[Optional[sublime.View]]
     sublime.set_timeout(
         lambda: open_file_and_center(window, file_path, r, flags, group).then(
-            lambda view: sublime.set_timeout_async(
-                lambda: pair[1](view)
-            )
+            lambda view: sublime.set_timeout_async(lambda: pair[1](view))
         )
     )
     return pair[0]

@@ -3,8 +3,9 @@ from LSP.plugin.core.protocol import Notification
 from LSP.plugin.core.protocol import Request
 from LSP.plugin.core.protocol import Response
 from LSP.plugin.core.types import ClientConfig
-from LSP.plugin.core.typing import List, Any, Callable
-
+from LSP.plugin.core.typing import Any
+from LSP.plugin.core.typing import Callable
+from LSP.plugin.core.typing import List
 
 TEST_CONFIG = ClientConfig(name="test", command=[], selector="text.plain", tcp_port=None)
 DISABLED_CONFIG = ClientConfig("test", command=[], selector="text.plain", tcp_port=None, enabled=False)
@@ -14,15 +15,8 @@ basic_responses = {
         'capabilities': {
             'testing': True,
             'hoverProvider': True,
-            'completionProvider': {
-                'triggerCharacters': ['.'],
-                'resolveProvider': True
-            },
-            'textDocumentSync': {
-                "openClose": True,
-                "change": 2,
-                "save": True
-            },
+            'completionProvider': {'triggerCharacters': ['.'], 'resolveProvider': True},
+            'textDocumentSync': {"openClose": True, "change": 2, "save": True},
             'definitionProvider': True,
             'typeDefinitionProvider': True,
             'declarationProvider': True,
@@ -30,11 +24,7 @@ basic_responses = {
             'documentFormattingProvider': True,
             'selectionRangeProvider': True,
             'renameProvider': True,
-            'workspace': {
-                'workspaceFolders': {
-                    'supported': True
-                }
-            }
+            'workspace': {'workspaceFolders': {'supported': True}},
         }
     }
 }

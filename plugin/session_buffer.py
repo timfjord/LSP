@@ -1,15 +1,20 @@
 from .core.protocol import Diagnostic
 from .core.protocol import DiagnosticSeverity
+from .core.protocol import Range
 from .core.protocol import TextDocumentSyncKindFull
 from .core.protocol import TextDocumentSyncKindNone
-from .core.protocol import Range
 from .core.sessions import SessionViewProtocol
 from .core.settings import userprefs
 from .core.types import Capabilities
 from .core.types import debounced
 from .core.types import Debouncer
 from .core.types import FEATURES_TIMEOUT
-from .core.typing import Any, Iterable, Optional, List, Dict, Tuple
+from .core.typing import Any
+from .core.typing import Dict
+from .core.typing import Iterable
+from .core.typing import List
+from .core.typing import Optional
+from .core.typing import Tuple
 from .core.views import DIAGNOSTIC_SEVERITY
 from .core.views import diagnostic_severity
 from .core.views import did_change
@@ -20,6 +25,7 @@ from .core.views import format_diagnostic_for_panel
 from .core.views import range_to_region
 from .core.views import will_save
 from weakref import WeakSet
+
 import sublime
 import time
 
@@ -119,11 +125,7 @@ class SessionBuffer:
                 listener.on_session_shutdown_async(self.session)
 
     def register_capability_async(
-        self,
-        registration_id: str,
-        capability_path: str,
-        registration_path: str,
-        options: Dict[str, Any]
+        self, registration_id: str, capability_path: str, registration_path: str, options: Dict[str, Any]
     ) -> None:
         self.capabilities.register(registration_id, capability_path, registration_path, options)
         view = None  # type: Optional[sublime.View]
@@ -135,12 +137,7 @@ class SessionBuffer:
             if capability_path.startswith("textDocumentSync."):
                 self._check_did_open(view)
 
-    def unregister_capability_async(
-        self,
-        registration_id: str,
-        capability_path: str,
-        registration_path: str
-    ) -> None:
+    def unregister_capability_async(self, registration_id: str, capability_path: str, registration_path: str) -> None:
         discarded = self.capabilities.unregister(registration_id, capability_path, registration_path)
         if discarded is None:
             return
@@ -174,8 +171,9 @@ class SessionBuffer:
     def should_notify_did_close(self) -> bool:
         return self.capabilities.should_notify_did_close() or self.session.should_notify_did_close()
 
-    def on_text_changed_async(self, view: sublime.View, change_count: int,
-                              changes: Iterable[sublime.TextChange]) -> None:
+    def on_text_changed_async(
+        self, view: sublime.View, change_count: int, changes: Iterable[sublime.TextChange]
+    ) -> None:
         self.last_text_change_time = time.time()
         last_change = list(changes)[-1]
         if last_change.a.pt == 0 and last_change.b.pt == 0 and last_change.str == '' and view.size() != 0:
@@ -192,8 +190,12 @@ class SessionBuffer:
                 self.pending_changes.update(change_count, changes)
                 purge = True
             if purge:
-                debounced(lambda: self.purge_changes_async(view), FEATURES_TIMEOUT,
-                          lambda: view.is_valid() and change_count == view.change_count(), async_thread=True)
+                debounced(
+                    lambda: self.purge_changes_async(view),
+                    FEATURES_TIMEOUT,
+                    lambda: view.is_valid() and change_count == view.change_count(),
+                    async_thread=True,
+                )
 
     def on_revert_async(self, view: sublime.View) -> None:
         self.pending_changes = None  # Don't bother with pending changes
@@ -286,7 +288,7 @@ class SessionBuffer:
                 data_per_severity,
                 total_errors,
                 total_warnings,
-                should_show_diagnostics_panel
+                should_show_diagnostics_panel,
             )
 
     def _publish_diagnostics_to_session_views(
@@ -296,9 +298,8 @@ class SessionBuffer:
         data_per_severity: Dict[int, DiagnosticSeverityData],
         total_errors: int,
         total_warnings: int,
-        should_show_diagnostics_panel: bool
+        should_show_diagnostics_panel: bool,
     ) -> None:
-
         def present() -> None:
             self._present_diagnostics_async(
                 diagnostics_version,
@@ -306,7 +307,7 @@ class SessionBuffer:
                 data_per_severity,
                 total_errors,
                 total_warnings,
-                should_show_diagnostics_panel
+                should_show_diagnostics_panel,
             )
 
         self.diagnostics_debouncer.cancel_pending()
@@ -329,7 +330,7 @@ class SessionBuffer:
                     present,
                     timeout_ms=int(1000.0 * delay_in_seconds),
                     condition=lambda: bool(view and view.is_valid() and view.change_count() == diagnostics_version),
-                    async_thread=True
+                    async_thread=True,
                 )
 
     def _present_diagnostics_async(
@@ -339,7 +340,7 @@ class SessionBuffer:
         data_per_severity: Dict[int, DiagnosticSeverityData],
         total_errors: int,
         total_warnings: int,
-        should_show_diagnostics_panel: bool
+        should_show_diagnostics_panel: bool,
     ) -> None:
         self.diagnostics_version = diagnostics_version
         self.diagnostics = diagnostics

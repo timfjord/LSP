@@ -8,7 +8,7 @@ from .open import open_externally
 from .progress import WindowProgressReporter
 from .promise import PackagedTask
 from .promise import Promise
-from .protocol import CodeAction, Location, LocationLink
+from .protocol import CodeAction
 from .protocol import Command
 from .protocol import CompletionItemTag
 from .protocol import Diagnostic
@@ -17,6 +17,8 @@ from .protocol import DocumentUri
 from .protocol import Error
 from .protocol import ErrorCode
 from .protocol import ExecuteCommandParams
+from .protocol import Location
+from .protocol import LocationLink
 from .protocol import Notification
 from .protocol import RangeLsp
 from .protocol import Request
@@ -34,7 +36,18 @@ from .types import diff
 from .types import DocumentSelector
 from .types import method_to_capability
 from .types import SettingsRegistration
-from .typing import Callable, cast, Dict, Any, Optional, List, Tuple, Generator, Type, Protocol, Mapping, Union
+from .typing import Any
+from .typing import Callable
+from .typing import cast
+from .typing import Dict
+from .typing import Generator
+from .typing import List
+from .typing import Mapping
+from .typing import Optional
+from .typing import Protocol
+from .typing import Tuple
+from .typing import Type
+from .typing import Union
 from .url import uri_to_filename
 from .version import __version__
 from .views import COMPLETION_KINDS
@@ -47,12 +60,12 @@ from .workspace import is_subpath_of
 from abc import ABCMeta
 from abc import abstractmethod
 from weakref import WeakSet
+
 import functools
 import mdpopups
 import os
 import sublime
 import weakref
-
 
 InitCallback = Callable[['Session', bool], None]
 
@@ -116,8 +129,9 @@ class Manager(metaclass=ABCMeta):
         pass
 
 
-def get_initialize_params(variables: Dict[str, str], workspace_folders: List[WorkspaceFolder],
-                          config: ClientConfig) -> dict:
+def get_initialize_params(
+    variables: Dict[str, str], workspace_folders: List[WorkspaceFolder], config: ClientConfig
+) -> dict:
     completion_kinds = list(range(1, len(COMPLETION_KINDS) + 1))
     symbol_kinds = list(range(1, len(SYMBOL_KINDS) + 1))
     diagnostic_tag_value_set = [v for k, v in DiagnosticTag.__dict__.items() if not k.startswith('_')]
@@ -137,84 +151,49 @@ def get_initialize_params(variables: Dict[str, str], workspace_folders: List[Wor
             "markdown": {
                 # https://python-markdown.github.io
                 "parser": "Python-Markdown",
-                "version": mdpopups.markdown.__version__  # type: ignore
-            }
+                "version": mdpopups.markdown.__version__,  # type: ignore
+            },
         },
         "textDocument": {
             "synchronization": {
                 "dynamicRegistration": True,  # exceptional
                 "didSave": True,
                 "willSave": True,
-                "willSaveWaitUntil": True
+                "willSaveWaitUntil": True,
             },
-            "hover": {
-                "dynamicRegistration": True,
-                "contentFormat": ["markdown", "plaintext"]
-            },
+            "hover": {"dynamicRegistration": True, "contentFormat": ["markdown", "plaintext"]},
             "completion": {
                 "dynamicRegistration": True,
                 "completionItem": {
                     "snippetSupport": True,
                     "deprecatedSupport": True,
                     "documentationFormat": ["markdown", "plaintext"],
-                    "tagSupport": {
-                        "valueSet": completion_tag_value_set
-                    },
-                    "resolveSupport": {
-                        "properties": ["detail", "documentation", "additionalTextEdits"]
-                    }
+                    "tagSupport": {"valueSet": completion_tag_value_set},
+                    "resolveSupport": {"properties": ["detail", "documentation", "additionalTextEdits"]},
                 },
-                "completionItemKind": {
-                    "valueSet": completion_kinds
-                }
+                "completionItemKind": {"valueSet": completion_kinds},
             },
             "signatureHelp": {
                 "dynamicRegistration": True,
                 "signatureInformation": {
                     "documentationFormat": ["markdown", "plaintext"],
-                    "parameterInformation": {
-                        "labelOffsetSupport": True
-                    }
-                }
+                    "parameterInformation": {"labelOffsetSupport": True},
+                },
             },
-            "references": {
-                "dynamicRegistration": True
-            },
-            "documentHighlight": {
-                "dynamicRegistration": True
-            },
+            "references": {"dynamicRegistration": True},
+            "documentHighlight": {"dynamicRegistration": True},
             "documentSymbol": {
                 "dynamicRegistration": True,
                 "hierarchicalDocumentSymbolSupport": True,
-                "symbolKind": {
-                    "valueSet": symbol_kinds
-                },
-                "tagSupport": {
-                    "valueSet": symbol_tag_value_set
-                }
+                "symbolKind": {"valueSet": symbol_kinds},
+                "tagSupport": {"valueSet": symbol_tag_value_set},
             },
-            "formatting": {
-                "dynamicRegistration": True  # exceptional
-            },
-            "rangeFormatting": {
-                "dynamicRegistration": True
-            },
-            "declaration": {
-                "dynamicRegistration": True,
-                "linkSupport": True
-            },
-            "definition": {
-                "dynamicRegistration": True,
-                "linkSupport": True
-            },
-            "typeDefinition": {
-                "dynamicRegistration": True,
-                "linkSupport": True
-            },
-            "implementation": {
-                "dynamicRegistration": True,
-                "linkSupport": True
-            },
+            "formatting": {"dynamicRegistration": True},  # exceptional
+            "rangeFormatting": {"dynamicRegistration": True},
+            "declaration": {"dynamicRegistration": True, "linkSupport": True},
+            "definition": {"dynamicRegistration": True, "linkSupport": True},
+            "typeDefinition": {"dynamicRegistration": True, "linkSupport": True},
+            "implementation": {"dynamicRegistration": True, "linkSupport": True},
             "codeAction": {
                 "dynamicRegistration": True,
                 "codeActionLiteralSupport": {
@@ -225,45 +204,28 @@ def get_initialize_params(variables: Dict[str, str], workspace_folders: List[Wor
                             "refactor.extract",
                             "refactor.inline",
                             "refactor.rewrite",
-                            "source.organizeImports"
+                            "source.organizeImports",
                         ]
                     }
                 },
                 "dataSupport": True,
-                "resolveSupport": {
-                    "properties": [
-                        "edit"
-                    ]
-                }
+                "resolveSupport": {"properties": ["edit"]},
             },
-            "rename": {
-                "dynamicRegistration": True,
-                "prepareSupport": True
-            },
-            "colorProvider": {
-                "dynamicRegistration": True  # exceptional
-            },
+            "rename": {"dynamicRegistration": True, "prepareSupport": True},
+            "colorProvider": {"dynamicRegistration": True},  # exceptional
             "publishDiagnostics": {
                 "relatedInformation": True,
-                "tagSupport": {
-                    "valueSet": diagnostic_tag_value_set
-                },
+                "tagSupport": {"valueSet": diagnostic_tag_value_set},
                 "versionSupport": True,
                 "codeDescriptionSupport": True,
-                "dataSupport": True
+                "dataSupport": True,
             },
-            "selectionRange": {
-                "dynamicRegistration": True
-            },
-            "codeLens": {
-                "dynamicRegistration": True
-            }
+            "selectionRange": {"dynamicRegistration": True},
+            "codeLens": {"dynamicRegistration": True},
         },
         "workspace": {
             "applyEdit": True,
-            "didChangeConfiguration": {
-                "dynamicRegistration": True
-            },
+            "didChangeConfiguration": {"dynamicRegistration": True},
             "executeCommand": {},
             "workspaceEdit": {
                 "documentChanges": True,
@@ -272,40 +234,27 @@ def get_initialize_params(variables: Dict[str, str], workspace_folders: List[Wor
             "workspaceFolders": True,
             "symbol": {
                 "dynamicRegistration": True,  # exceptional
-                "symbolKind": {
-                    "valueSet": symbol_kinds
-                },
-                "tagSupport": {
-                    "valueSet": symbol_tag_value_set
-                }
+                "symbolKind": {"valueSet": symbol_kinds},
+                "tagSupport": {"valueSet": symbol_tag_value_set},
             },
-            "configuration": True
+            "configuration": True,
         },
         "window": {
-            "showDocument": {
-                "support": True
-            },
-            "showMessage": {
-                "messageActionItem": {
-                    "additionalPropertiesSupport": True
-                }
-            },
-            "workDoneProgress": True
-        }
+            "showDocument": {"support": True},
+            "showMessage": {"messageActionItem": {"additionalPropertiesSupport": True}},
+            "workDoneProgress": True,
+        },
     }
     if config.experimental_capabilities is not None:
         capabilities['experimental'] = config.experimental_capabilities
     return {
         "processId": os.getpid(),
-        "clientInfo": {
-            "name": "Sublime Text LSP",
-            "version": ".".join(map(str, __version__))
-        },
+        "clientInfo": {"name": "Sublime Text LSP", "version": ".".join(map(str, __version__))},
         "rootUri": first_folder.uri() if first_folder else None,
         "rootPath": first_folder.path if first_folder else None,
         "workspaceFolders": [folder.to_lsp() for folder in workspace_folders] if workspace_folders else None,
         "capabilities": capabilities,
-        "initializationOptions": config.init_options.get_resolved(variables)
+        "initializationOptions": config.init_options.get_resolved(variables),
     }
 
 
@@ -349,20 +298,11 @@ class SessionBufferProtocol(Protocol):
     language_id = None  # type: str
 
     def register_capability_async(
-        self,
-        registration_id: str,
-        capability_path: str,
-        registration_path: str,
-        options: Dict[str, Any]
+        self, registration_id: str, capability_path: str, registration_path: str, options: Dict[str, Any]
     ) -> None:
         ...
 
-    def unregister_capability_async(
-        self,
-        registration_id: str,
-        capability_path: str,
-        registration_path: str
-    ) -> None:
+    def unregister_capability_async(self, registration_id: str, capability_path: str, registration_path: str) -> None:
         ...
 
     def on_diagnostics_async(self, diagnostics: List[Diagnostic], version: Optional[int]) -> None:
@@ -494,8 +434,13 @@ class AbstractPlugin(metaclass=ABCMeta):
         pass
 
     @classmethod
-    def can_start(cls, window: sublime.Window, initiating_view: sublime.View,
-                  workspace_folders: List[WorkspaceFolder], configuration: ClientConfig) -> Optional[str]:
+    def can_start(
+        cls,
+        window: sublime.Window,
+        initiating_view: sublime.View,
+        workspace_folders: List[WorkspaceFolder],
+        configuration: ClientConfig,
+    ) -> Optional[str]:
         """
         Determines ability to start. This is called after needs_update_or_installation and after install_or_update.
         So you may assume that if you're managing your server binary, then it is already installed when this
@@ -512,8 +457,13 @@ class AbstractPlugin(metaclass=ABCMeta):
         return None
 
     @classmethod
-    def on_pre_start(cls, window: sublime.Window, initiating_view: sublime.View,
-                     workspace_folders: List[WorkspaceFolder], configuration: ClientConfig) -> Optional[str]:
+    def on_pre_start(
+        cls,
+        window: sublime.Window,
+        initiating_view: sublime.View,
+        workspace_folders: List[WorkspaceFolder],
+        configuration: ClientConfig,
+    ) -> Optional[str]:
         """
         Callback invoked just before the language server subprocess is started. This is the place to do last-minute
         adjustments to your "command" or "init_options" in the passed-in "configuration" argument, or change the
@@ -530,8 +480,13 @@ class AbstractPlugin(metaclass=ABCMeta):
         return None
 
     @classmethod
-    def on_post_start(cls, window: sublime.Window, initiating_view: sublime.View,
-                      workspace_folders: List[WorkspaceFolder], configuration: ClientConfig) -> None:
+    def on_post_start(
+        cls,
+        window: sublime.Window,
+        initiating_view: sublime.View,
+        workspace_folders: List[WorkspaceFolder],
+        configuration: ClientConfig,
+    ) -> None:
         """
         Callback invoked when the subprocess was just started.
 
@@ -613,7 +568,9 @@ class AbstractPlugin(metaclass=ABCMeta):
         """
         return False
 
-    def on_register_capability_async(self, registration_id: str, capability_path: str, options: Dict[str, Any]) -> None:
+    def on_register_capability_async(
+        self, registration_id: str, capability_path: str, options: Dict[str, Any]
+    ) -> None:
         """
         Notifies about server dynamically registering a capability using the client/registerCapability request.
         This API is triggered on async thread.
@@ -734,7 +691,6 @@ def get_plugin(name: str) -> Optional[Type[AbstractPlugin]]:
 
 
 class Logger(metaclass=ABCMeta):
-
     @abstractmethod
     def stderr_message(self, message: str) -> None:
         pass
@@ -784,11 +740,7 @@ class _RegistrationData:
     __slots__ = ("registration_id", "capability_path", "registration_path", "options", "session_buffers", "selector")
 
     def __init__(
-        self,
-        registration_id: str,
-        capability_path: str,
-        registration_path: str,
-        options: Dict[str, Any]
+        self, registration_id: str, capability_path: str, registration_path: str, options: Dict[str, Any]
     ) -> None:
         self.registration_id = registration_id
         self.registration_path = registration_path
@@ -809,7 +761,8 @@ class _RegistrationData:
             if self.selector.matches(sv.view):
                 self.session_buffers.add(sb)
                 sb.register_capability_async(
-                    self.registration_id, self.capability_path, self.registration_path, self.options)
+                    self.registration_id, self.capability_path, self.registration_path, self.options
+                )
                 return
 
 
@@ -817,9 +770,14 @@ _WORK_DONE_PROGRESS_PREFIX = "wd"
 
 
 class Session(TransportCallbacks):
-
-    def __init__(self, manager: Manager, logger: Logger, workspace_folders: List[WorkspaceFolder],
-                 config: ClientConfig, plugin_class: Optional[Type[AbstractPlugin]]) -> None:
+    def __init__(
+        self,
+        manager: Manager,
+        logger: Logger,
+        workspace_folders: List[WorkspaceFolder],
+        config: ClientConfig,
+        plugin_class: Optional[Type[AbstractPlugin]],
+    ) -> None:
         self.transport = None  # type: Optional[Transport]
         self.request_id = 0  # Our request IDs are always integers.
         self._logger = logger
@@ -920,9 +878,11 @@ class Session(TransportCallbacks):
 
     def can_handle(self, view: sublime.View, capability: Optional[str], inside_workspace: bool) -> bool:
         file_name = view.file_name() or ''
-        if (self.config.match_view(view)
-                and self.state == ClientStates.READY
-                and self.handles_path(file_name, inside_workspace)):
+        if (
+            self.config.match_view(view)
+            and self.state == ClientStates.READY
+            and self.handles_path(file_name, inside_workspace)
+        ):
             # If there's no capability requirement then this session can handle the view
             if capability is None:
                 return True
@@ -981,12 +941,7 @@ class Session(TransportCallbacks):
         if self.should_notify_did_change_workspace_folders():
             added, removed = diff(self._workspace_folders, folders)
             if added or removed:
-                params = {
-                    "event": {
-                        "added": [a.to_lsp() for a in added],
-                        "removed": [r.to_lsp() for r in removed]
-                    }
-                }
+                params = {"event": {"added": [a.to_lsp() for a in added], "removed": [r.to_lsp() for r in removed]}}
                 self.send_notification(Notification.didChangeWorkspaceFolders(params))
         if self._supports_workspace_folders():
             self._workspace_folders = folders
@@ -998,7 +953,8 @@ class Session(TransportCallbacks):
         params = get_initialize_params(variables, self._workspace_folders, self.config)
         self._init_callback = init_callback
         self.send_request_async(
-            Request.initialize(params), self._handle_initialize_success, self._handle_initialize_error)
+            Request.initialize(params), self._handle_initialize_success, self._handle_initialize_error
+        )
 
     def _handle_initialize_success(self, result: Any) -> None:
         self.capabilities.assign(result.get('capabilities', dict()))
@@ -1020,7 +976,10 @@ class Session(TransportCallbacks):
             self._init_callback = None
 
     def _handle_initialize_error(self, result: Any) -> None:
-        self._initialize_error = (result.get('code', -1), Exception(result.get('message', 'Error initializing server')))
+        self._initialize_error = (
+            result.get('code', -1),
+            Exception(result.get('message', 'Error initializing server')),
+        )
         # Init callback called after transport is closed to avoid pre-mature GC of Session.
         self.end_async()
 
@@ -1064,7 +1023,7 @@ class Session(TransportCallbacks):
             lambda resolve: self.send_request(
                 Request("workspace/executeCommand", command, None, progress),
                 resolve,
-                lambda err: resolve(Error(err["code"], err["message"], err.get("data")))
+                lambda err: resolve(Error(err["code"], err["message"], err.get("data"))),
             )
         )
 
@@ -1111,8 +1070,9 @@ class Session(TransportCallbacks):
                 return result[0]
         return Promise.resolve(False)
 
-    def open_location_async(self, location: Union[Location, LocationLink], flags: int = 0,
-                            group: int = -1) -> Promise[bool]:
+    def open_location_async(
+        self, location: Union[Location, LocationLink], flags: int = 0, group: int = -1
+    ) -> Promise[bool]:
         uri, r = get_uri_and_range_from_location(location)
         return self.open_uri_async(uri, r, flags, group)
 
@@ -1148,9 +1108,11 @@ class Session(TransportCallbacks):
         applied.
         """
         changes = parse_workspace_edit(edit)
-        return Promise.on_main_thread(None) \
-            .then(lambda _: apply_workspace_edit(self.window, changes)) \
+        return (
+            Promise.on_main_thread(None)
+            .then(lambda _: apply_workspace_edit(self.window, changes))
             .then(lambda _: Promise.on_async_thread(None))
+        )
 
     # --- server request handlers --------------------------------------------------------------------------------------
 
@@ -1184,7 +1146,8 @@ class Session(TransportCallbacks):
     def m_workspace_applyEdit(self, params: Any, request_id: Any) -> None:
         """handles the workspace/applyEdit request"""
         self._apply_workspace_edit_async(params.get('edit', {})).then(
-            lambda _: self.send_response(Response(request_id, {"applied": True})))
+            lambda _: self.send_response(Response(request_id, {"applied": True}))
+        )
 
     def m_textDocument_publishDiagnostics(self, params: Any) -> None:
         """handles the textDocument/publishDiagnostics notification"""
@@ -1224,7 +1187,8 @@ class Session(TransportCallbacks):
                     sublime.set_timeout_async(inform)
             if self._plugin:
                 inform = functools.partial(
-                    self._plugin.on_register_capability_async, registration_id, capability_path, options)
+                    self._plugin.on_register_capability_async, registration_id, capability_path, options
+                )
                 sublime.set_timeout_async(inform)
         self.send_response(Response(request_id, None))
 
@@ -1285,7 +1249,7 @@ class Session(TransportCallbacks):
         token = params['token']
         if token not in self._progress:
             try:
-                request_id = int(token[len(_WORK_DONE_PROGRESS_PREFIX):])
+                request_id = int(token[len(_WORK_DONE_PROGRESS_PREFIX) :])
                 request = self._response_handlers[request_id][0]
                 self._invoke_views(request, "on_request_progress", request_id, params)
                 return
@@ -1300,7 +1264,7 @@ class Session(TransportCallbacks):
                 window=self.window,
                 key="lspprogress{}{}".format(self.config.name, token),
                 title=value["title"],
-                message=value.get("message")
+                message=value.get("message"),
             )
         elif kind == 'report':
             progress = self._progress[token]
@@ -1356,10 +1320,7 @@ class Session(TransportCallbacks):
     # --- RPC message handling ----------------------------------------------------------------------------------------
 
     def send_request_async(
-            self,
-            request: Request,
-            on_result: Callable[[Any], None],
-            on_error: Optional[Callable[[Any], None]] = None
+        self, request: Request, on_result: Callable[[Any], None], on_error: Optional[Callable[[Any], None]] = None
     ) -> None:
         """You must call this method from Sublime's worker thread. Callbacks will run in Sublime's worker thread."""
         self.request_id += 1
@@ -1374,10 +1335,10 @@ class Session(TransportCallbacks):
         self.send_payload(request.to_payload(request_id))
 
     def send_request(
-            self,
-            request: Request,
-            on_result: Callable[[Any], None],
-            on_error: Optional[Callable[[Any], None]] = None,
+        self,
+        request: Request,
+        on_result: Callable[[Any], None],
+        on_error: Optional[Callable[[Any], None]] = None,
     ) -> None:
         """You can call this method from any thread. Callbacks will run in Sublime's worker thread."""
         sublime.set_timeout_async(functools.partial(self.send_request_async, request, on_result, on_error))
@@ -1416,8 +1377,7 @@ class Session(TransportCallbacks):
             pass
 
     def deduce_payload(
-        self,
-        payload: Dict[str, Any]
+        self, payload: Dict[str, Any]
     ) -> Tuple[Optional[Callable], Any, Optional[int], Optional[str], Optional[str]]:
         if "method" in payload:
             method = payload["method"]

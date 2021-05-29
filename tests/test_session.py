@@ -1,21 +1,25 @@
 from LSP.plugin.core.collections import DottedDict
 from LSP.plugin.core.protocol import Error
-from LSP.plugin.core.protocol import TextDocumentSyncKindFull, TextDocumentSyncKindNone, TextDocumentSyncKindIncremental
+from LSP.plugin.core.protocol import TextDocumentSyncKindFull
+from LSP.plugin.core.protocol import TextDocumentSyncKindIncremental
+from LSP.plugin.core.protocol import TextDocumentSyncKindNone
 from LSP.plugin.core.protocol import WorkspaceFolder
-from LSP.plugin.core.sessions import Logger
 from LSP.plugin.core.sessions import get_initialize_params
+from LSP.plugin.core.sessions import Logger
 from LSP.plugin.core.sessions import Manager
 from LSP.plugin.core.sessions import Session
 from LSP.plugin.core.types import ClientConfig
-from LSP.plugin.core.typing import Any, Optional, Generator
+from LSP.plugin.core.typing import Any
+from LSP.plugin.core.typing import Generator
+from LSP.plugin.core.typing import Optional
 from test_mocks import TEST_CONFIG
+
 import sublime
 import unittest
 import unittest.mock
 
 
 class MockManager(Manager):
-
     def __init__(self, window: sublime.Window) -> None:
         self._window = window
 
@@ -42,7 +46,6 @@ class MockManager(Manager):
 
 
 class MockLogger(Logger):
-
     def stderr_message(self, message: str) -> None:
         pass
 
@@ -69,33 +72,24 @@ class MockLogger(Logger):
 
 
 class SessionTest(unittest.TestCase):
-
     def test_experimental_capabilities(self) -> None:
         wf = WorkspaceFolder.from_path("/foo/bar/baz")
         params = get_initialize_params(
             {},
             [wf],
-            ClientConfig(name="test", command=[""], selector="", tcp_port=None, experimental_capabilities=None))
+            ClientConfig(name="test", command=[""], selector="", tcp_port=None, experimental_capabilities=None),
+        )
         self.assertNotIn("experimental", params["capabilities"])
 
         params = get_initialize_params(
-            {},
-            [wf],
-            ClientConfig(name="test", command=[""], selector="", tcp_port=None, experimental_capabilities={}))
+            {}, [wf], ClientConfig(name="test", command=[""], selector="", tcp_port=None, experimental_capabilities={})
+        )
         self.assertIn("experimental", params["capabilities"])
         self.assertEqual(params["capabilities"]["experimental"], {})
 
-        experimental_capabilities = {
-            "foo": 1,
-            "bar": True,
-            "baz": "abc"
-        }
+        experimental_capabilities = {"foo": 1, "bar": True, "baz": "abc"}
         config = ClientConfig(
-            name="test",
-            command=[""],
-            selector="",
-            tcp_port=None,
-            experimental_capabilities=experimental_capabilities
+            name="test", command=[""], selector="", tcp_port=None, experimental_capabilities=experimental_capabilities
         )
         params = get_initialize_params({}, [wf], config)
         self.assertIn("experimental", params["capabilities"])
@@ -104,49 +98,54 @@ class SessionTest(unittest.TestCase):
     def test_initialize_params(self) -> None:
         wf = WorkspaceFolder.from_path("/foo/bar/baz")
         params = get_initialize_params(
-            {}, [wf], ClientConfig(name="test", command=[""], selector="", tcp_port=None, init_options=DottedDict()))
+            {}, [wf], ClientConfig(name="test", command=[""], selector="", tcp_port=None, init_options=DottedDict())
+        )
         self.assertIn("initializationOptions", params)
         self.assertEqual(params["initializationOptions"], {})
         params = get_initialize_params(
-            {}, [wf], ClientConfig(
-                name="test", command=[""], selector="", tcp_port=None, init_options=DottedDict({"foo": "bar"})))
+            {},
+            [wf],
+            ClientConfig(
+                name="test", command=[""], selector="", tcp_port=None, init_options=DottedDict({"foo": "bar"})
+            ),
+        )
         self.assertIn("initializationOptions", params)
         self.assertEqual(params["initializationOptions"], {"foo": "bar"})
 
     def test_document_sync_capabilities(self) -> None:
         manager = MockManager(sublime.active_window())
-        session = Session(manager=manager, logger=MockLogger(), workspace_folders=[], config=TEST_CONFIG,
-                          plugin_class=None)
-        session.capabilities.assign({
-            'textDocumentSync': {
-                "openClose": True,
-                "change": TextDocumentSyncKindFull,
-                "save": True}})  # A boolean with value true means "send didSave"
+        session = Session(
+            manager=manager, logger=MockLogger(), workspace_folders=[], config=TEST_CONFIG, plugin_class=None
+        )
+        session.capabilities.assign(
+            {'textDocumentSync': {"openClose": True, "change": TextDocumentSyncKindFull, "save": True}}
+        )  # A boolean with value true means "send didSave"
         self.assertTrue(session.should_notify_did_open())
         self.assertTrue(session.should_notify_did_close())
         self.assertEqual(session.text_sync_kind(), TextDocumentSyncKindFull)
         self.assertFalse(session.should_notify_will_save())
         self.assertEqual(session.should_notify_did_save(), (True, False))
 
-        session.capabilities.assign({
-            'textDocumentSync': {
-                "didOpen": {},
-                "didClose": {},
-                "change": TextDocumentSyncKindFull,
-                "save": True}})  # A boolean with value true means "send didSave"
+        session.capabilities.assign(
+            {'textDocumentSync': {"didOpen": {}, "didClose": {}, "change": TextDocumentSyncKindFull, "save": True}}
+        )  # A boolean with value true means "send didSave"
         self.assertTrue(session.should_notify_did_open())
         self.assertTrue(session.should_notify_did_close())
         self.assertEqual(session.text_sync_kind(), TextDocumentSyncKindFull)
         self.assertFalse(session.should_notify_will_save())
         self.assertEqual(session.should_notify_did_save(), (True, False))
 
-        session.capabilities.assign({
-            'textDocumentSync': {
-                "openClose": False,
-                "change": TextDocumentSyncKindNone,
-                "save": {},  # An empty dict means "send didSave"
-                "willSave": True,
-                "willSaveWaitUntil": False}})
+        session.capabilities.assign(
+            {
+                'textDocumentSync': {
+                    "openClose": False,
+                    "change": TextDocumentSyncKindNone,
+                    "save": {},  # An empty dict means "send didSave"
+                    "willSave": True,
+                    "willSaveWaitUntil": False,
+                }
+            }
+        )
         self.assertFalse(session.should_notify_did_open())
         self.assertFalse(session.should_notify_did_close())
         self.assertEqual(session.text_sync_kind(), TextDocumentSyncKindNone)
@@ -159,13 +158,17 @@ class SessionTest(unittest.TestCase):
         self.assertFalse(session.has_capability('textDocumentSync.willSaveUntil'))
         self.assertFalse(session.has_capability('textDocumentSync.aintthere'))
 
-        session.capabilities.assign({
-            'textDocumentSync': {
-                "openClose": False,
-                "change": TextDocumentSyncKindIncremental,
-                "save": {"includeText": True},
-                "willSave": False,
-                "willSaveWaitUntil": True}})
+        session.capabilities.assign(
+            {
+                'textDocumentSync': {
+                    "openClose": False,
+                    "change": TextDocumentSyncKindIncremental,
+                    "save": {"includeText": True},
+                    "willSave": False,
+                    "willSaveWaitUntil": True,
+                }
+            }
+        )
         self.assertFalse(session.should_notify_did_open())
         self.assertFalse(session.should_notify_did_close())
         self.assertEqual(session.text_sync_kind(), TextDocumentSyncKindIncremental)
@@ -187,11 +190,9 @@ class SessionTest(unittest.TestCase):
         self.assertFalse(session.should_notify_will_save())
         self.assertEqual(session.should_notify_did_save(), (True, False))
 
-        session.capabilities.assign({
-            'textDocumentSync': {
-                "openClose": True,
-                "save": False,
-                "change": TextDocumentSyncKindIncremental}})
+        session.capabilities.assign(
+            {'textDocumentSync': {"openClose": True, "save": False, "change": TextDocumentSyncKindIncremental}}
+        )
         self.assertTrue(session.should_notify_did_open())
         self.assertTrue(session.should_notify_did_close())
         self.assertEqual(session.text_sync_kind(), TextDocumentSyncKindIncremental)

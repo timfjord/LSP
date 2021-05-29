@@ -1,8 +1,10 @@
 from .protocol import WorkspaceFolder
 from .types import diff
-from .typing import List, Union
-import sublime
+from .typing import List
+from .typing import Union
+
 import os
+import sublime
 
 
 def is_subpath_of(file_path: str, potential_subpath: str) -> bool:
@@ -15,7 +17,6 @@ def is_subpath_of(file_path: str, potential_subpath: str) -> bool:
 
 
 class ProjectFolders(object):
-
     def __init__(self, window: sublime.Window) -> None:
         self._window = window
         self.folders = self._window.folders()  # type: List[str]
@@ -69,7 +70,8 @@ def enable_in_project(window: sublime.Window, config_name: str) -> None:
         window.set_project_data(project_data)
     else:
         sublime.message_dialog(
-            "Can't enable {} in the current workspace. Ensure that the project is saved first.".format(config_name))
+            "Can't enable {} in the current workspace. Ensure that the project is saved first.".format(config_name)
+        )
 
 
 def disable_in_project(window: sublime.Window, config_name: str) -> None:
@@ -82,4 +84,5 @@ def disable_in_project(window: sublime.Window, config_name: str) -> None:
         window.set_project_data(project_data)
     else:
         sublime.message_dialog(
-            "Can't disable {} in the current workspace. Ensure that the project is saved first.".format(config_name))
+            "Can't disable {} in the current workspace. Ensure that the project is saved first.".format(config_name)
+        )

@@ -1,5 +1,6 @@
-import sublime
 from .typing import Optional
+
+import sublime
 
 
 class CSS:

@@ -1,12 +1,12 @@
 from LSP.plugin.core.panels import ensure_server_panel
-from LSP.plugin.core.panels import SERVER_PANEL_MAX_LINES
 from LSP.plugin.core.panels import log_server_message
+from LSP.plugin.core.panels import SERVER_PANEL_MAX_LINES
 from unittesting import DeferrableTestCase
+
 import sublime
 
 
 class LspServerPanelTests(DeferrableTestCase):
-
     def setUp(self):
         super().setUp()
         self.window = sublime.active_window()
