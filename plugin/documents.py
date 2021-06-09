@@ -31,6 +31,7 @@ from .core.views import format_completion
 from .core.views import lsp_color_to_phantom
 from .core.views import make_command_link
 from .core.views import range_to_region
+from .core.views import region_to_range
 from .core.views import show_lsp_popup
 from .core.views import text_document_identifier
 from .core.views import text_document_position_params
@@ -281,6 +282,7 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
         if userprefs().show_code_actions:
             self._do_code_actions()
         self._update_diagnostic_in_status_bar_async()
+        self._update_active_diagnostic_async()
 
     def _update_diagnostic_in_status_bar_async(self) -> None:
         if userprefs().show_diagnostics_in_view_status:
@@ -294,6 +296,13 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
                             self.view.set_status(self.ACTIVE_DIAGNOSTIC, diag["message"])
                             return
         self.view.erase_status(self.ACTIVE_DIAGNOSTIC)
+
+    def _update_active_diagnostic_async(self) -> None:
+        selection = first_selection_region(self.view)
+        if selection is None:
+            return
+        for sv in self.session_views_async():
+            sv.update_active_diagnostic_async(selection)
 
     def session_views_async(self) -> Generator[SessionView, None, None]:
         yield from self._session_views.values()
@@ -354,6 +363,7 @@ class DocumentSyncListener(sublime_plugin.ViewEventListener, AbstractViewListene
                 self._when_selection_remains_stable_async(self._do_code_actions, current_region,
                                                           after_ms=self.code_actions_debounce_time)
             self._update_diagnostic_in_status_bar_async()
+            self._update_active_diagnostic_async()
             self._resolve_visible_code_lenses_async()
 
     def on_post_save_async(self) -> None:

@@ -1,4 +1,5 @@
 from .core.progress import ViewProgressReporter
+from .core.protocol import Diagnostic
 from .core.protocol import DiagnosticTag
 from .core.protocol import Notification
 from .core.protocol import Request
@@ -178,6 +179,9 @@ class SessionView:
     def diagnostics_key(self, severity: int, multiline: bool) -> str:
         return "lsp{}d{}{}".format(self.session.config.name, "m" if multiline else "s", severity)
 
+    def active_diagnostics_key(self) -> str:
+        return "lsp{}d_".format(self.session.config.name)
+
     def diagnostics_tag_scope(self, tag: int) -> Optional[str]:
         for k, v in DiagnosticTag.__dict__.items():
             if v == tag:
@@ -207,18 +211,39 @@ class SessionView:
                 tag_scope = self.diagnostics_tag_scope(tag)
                 # Trick to only add tag regions if there is a corresponding color scheme scope defined.
                 if tag_scope and 'background' in self.view.style_for_scope(tag_scope):
-                    annotations = [format_diagnostic_for_annotation(diag) for diag in data.tag_diagnostics]
-                    annotation_color = self.view.style_for_scope(tag_scope)['foreground']
-                    self.view.add_regions(key_tags[tag], regions, tag_scope, flags=sublime.DRAW_NO_OUTLINE,
-                                          annotations=annotations, annotation_color=annotation_color)
+                    # annotations = [format_diagnostic_for_annotation(diag) for diag in data.tag_diagnostics]
+                    # annotation_color = self.view.style_for_scope(tag_scope)['foreground']
+                    # self.view.add_regions(key_tags[tag], regions, tag_scope, flags=sublime.DRAW_NO_OUTLINE,
+                    #                       annotations=annotations, annotation_color=annotation_color)
+                    self.view.add_regions(key_tags[tag], regions, tag_scope, flags=sublime.DRAW_NO_OUTLINE)
                 else:
                     non_tag_regions.extend(regions)
-            annotations = [format_diagnostic_for_annotation(diag) for diag in data.region_diagnostics]
-            annotation_color = self.view.style_for_scope(data.scope)['foreground']
-            self.view.add_regions(key, non_tag_regions, data.scope, data.icon, flags | sublime.DRAW_EMPTY,
-                                  annotations, annotation_color)
+            # annotations = [format_diagnostic_for_annotation(diag) for diag in data.region_diagnostics]
+            # annotation_color = self.view.style_for_scope(data.scope)['foreground']
+            # self.view.add_regions(key, non_tag_regions, data.scope, data.icon, flags | sublime.DRAW_EMPTY,
+            #                       annotations, annotation_color)
+            self.view.add_regions(key, non_tag_regions, data.scope, data.icon, flags | sublime.DRAW_EMPTY)
         else:
             self.view.erase_regions(key)
+
+    def update_active_diagnostic_async(self, r: sublime.Region) -> None:
+        key = self.active_diagnostics_key()
+        if userprefs().show_diagnostics_in_view_status:
+            results = []  # type: List[Tuple[Diagnostic, sublime.Region]]
+            for diag, region in self.session_buffer.diagnostics:
+                if region.intersects(r):
+                    results.append((diag, region))
+            if results:
+                results = sorted(results, key=lambda d: d[0].get('severity', ''))
+                diag, region = results[0]
+                scope = DIAGNOSTIC_SEVERITY[diag.get('severity', '') - 1][2]
+                icon = ""
+                flags = sublime.DRAW_NO_FILL | sublime.DRAW_NO_OUTLINE
+                annotations = [format_diagnostic_for_annotation(diag)]
+                annotation_color = self.view.style_for_scope(scope)["foreground"]
+                self.view.add_regions(key, [region], scope, icon, flags, annotations, annotation_color)
+                return
+        self.view.erase_regions(key)
 
     def on_request_started_async(self, request_id: int, request: Request) -> None:
         self.active_requests[request_id] = request
