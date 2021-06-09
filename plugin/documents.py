@@ -31,7 +31,6 @@ from .core.views import format_completion
 from .core.views import lsp_color_to_phantom
 from .core.views import make_command_link
 from .core.views import range_to_region
-from .core.views import region_to_range
 from .core.views import show_lsp_popup
 from .core.views import text_document_identifier
 from .core.views import text_document_position_params
