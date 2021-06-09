@@ -328,7 +328,7 @@ class SessionViewProtocol(Protocol):
     def shutdown_async(self) -> None:
         ...
 
-    def present_diagnostics_async(self, flags: int) -> None:
+    def present_diagnostics_async(self) -> None:
         ...
 
     def on_request_started_async(self, request_id: int, request: Request) -> None:
@@ -365,7 +365,7 @@ class SessionBufferProtocol(Protocol):
     ) -> None:
         ...
 
-    def on_diagnostics_async(self, diagnostics: List[Diagnostic], version: Optional[int]) -> None:
+    def on_diagnostics_async(self, raw_diagnostics: List[Diagnostic], version: Optional[int]) -> None:
         ...
 
 
@@ -840,6 +840,7 @@ class Session(TransportCallbacks):
         self._progress = {}  # type: Dict[str, Optional[WindowProgressReporter]]
         self._plugin_class = plugin_class
         self._plugin = None  # type: Optional[AbstractPlugin]
+        self._status_messages = {}  # type: Dict[str, str]
 
     def __getattr__(self, name: str) -> Any:
         """
@@ -863,6 +864,8 @@ class Session(TransportCallbacks):
     def register_session_view_async(self, sv: SessionViewProtocol) -> None:
         self._session_views.add(sv)
         self._views_opened += 1
+        for status_key, message in self._status_messages.items():
+            sv.view.set_status(status_key, message)
 
     def unregister_session_view_async(self, sv: SessionViewProtocol) -> None:
         self._session_views.discard(sv)
@@ -883,10 +886,12 @@ class Session(TransportCallbacks):
         return None
 
     def set_window_status_async(self, key: str, message: str) -> None:
+        self._status_messages[key] = message
         for sv in self.session_views_async():
             sv.view.set_status(key, message)
 
     def erase_window_status_async(self, key: str) -> None:
+        self._status_messages.pop(key, None)
         for sv in self.session_views_async():
             sv.view.erase_status(key)
 
@@ -1326,6 +1331,8 @@ class Session(TransportCallbacks):
             self._plugin.on_session_end_async()
             self._plugin = None
         for sv in self.session_views_async():
+            for status_key in self._status_messages.keys():
+                sv.view.erase_status(status_key)
             sv.shutdown_async()
         self.capabilities.clear()
         self._registrations.clear()

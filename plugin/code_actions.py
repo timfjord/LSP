@@ -75,19 +75,6 @@ class CodeActionsManager:
     def __init__(self) -> None:
         self._response_cache = None  # type: Optional[Tuple[str, CodeActionsCollector]]
 
-    def request_with_diagnostics_async(
-        self,
-        view: sublime.View,
-        region: sublime.Region,
-        session_buffer_diagnostics: Sequence[Tuple[SessionBufferProtocol, Sequence[Diagnostic]]],
-        actions_handler: Callable[[CodeActionsByConfigName], None]
-    ) -> None:
-        """
-        Requests code actions *only* for provided diagnostics. If session has no diagnostics then
-        it will be skipped.
-        """
-        self._request_async(view, region, session_buffer_diagnostics, True, actions_handler)
-
     def request_for_region_async(
         self,
         view: sublime.View,
@@ -235,9 +222,6 @@ class CodeActionOnSaveTask(SaveTask):
                 allowed_code_actions[key] = value
         return allowed_code_actions
 
-    def get_task_timeout_ms(self) -> int:
-        return userprefs().code_action_on_save_timeout_ms
-
     def run_async(self) -> None:
         super().run_async()
         self._request_code_actions_async()
@@ -259,11 +243,14 @@ class CodeActionOnSaveTask(SaveTask):
                         for code_action in code_actions:
                             tasks.append(session.run_code_action_async(code_action, progress=False))
                         break
-        if document_version != self._task_runner.view.change_count():
+        Promise.all(tasks).then(lambda _: self._on_code_actions_completed(document_version))
+
+    def _on_code_actions_completed(self, previous_document_version: int) -> None:
+        if previous_document_version != self._task_runner.view.change_count():
             # Give on_text_changed_async a chance to trigger.
-            Promise.all(tasks).then(lambda _: sublime.set_timeout_async(self._request_code_actions_async))
+            sublime.set_timeout_async(self._request_code_actions_async)
         else:
-            Promise.all(tasks).then(lambda _: sublime.set_timeout_async(self._on_complete))
+            self._on_complete()
 
 
 LspSaveCommand.register_task(CodeActionOnSaveTask)
@@ -273,25 +260,37 @@ class LspCodeActionsCommand(LspTextCommand):
 
     capability = 'codeActionProvider'
 
-    def run(self, edit: sublime.Edit, event: Optional[dict] = None, only_kinds: Optional[List[str]] = None) -> None:
+    def run(
+        self,
+        edit: sublime.Edit,
+        event: Optional[dict] = None,
+        only_kinds: Optional[List[str]] = None,
+        commands_by_config: Optional[CodeActionsByConfigName] = None
+    ) -> None:
         self.commands = []  # type: List[Tuple[str, str, CodeActionOrCommand]]
         self.commands_by_config = {}  # type: CodeActionsByConfigName
-        view = self.view
-        region = first_selection_region(view)
-        if region is None:
-            return
-        listener = windows.listener_for_view(view)
-        if not listener:
-            return
-        session_buffer_diagnostics, covering = listener.diagnostics_intersecting_async(region)
-        dict_kinds = {kind: True for kind in only_kinds} if only_kinds else None
-        actions_manager.request_for_region_async(
-            view, covering, session_buffer_diagnostics, self.handle_responses_async, dict_kinds)
+        if commands_by_config:
+            self.handle_responses_async(commands_by_config, run_first=True)
+        else:
+            view = self.view
+            region = first_selection_region(view)
+            if region is None:
+                return
+            listener = windows.listener_for_view(view)
+            if not listener:
+                return
+            session_buffer_diagnostics, covering = listener.diagnostics_intersecting_async(region)
+            dict_kinds = {kind: True for kind in only_kinds} if only_kinds else None
+            actions_manager.request_for_region_async(
+                view, covering, session_buffer_diagnostics, self.handle_responses_async, dict_kinds)
 
-    def handle_responses_async(self, responses: CodeActionsByConfigName) -> None:
+    def handle_responses_async(self, responses: CodeActionsByConfigName, run_first: bool = False) -> None:
         self.commands_by_config = responses
         self.commands = self.combine_commands()
-        self.show_code_actions()
+        if len(self.commands) == 1 and run_first:
+            self.handle_select(0)
+        else:
+            self.show_code_actions()
 
     def combine_commands(self) -> 'List[Tuple[str, str, CodeActionOrCommand]]':
         results = []
