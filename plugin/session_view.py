@@ -234,9 +234,9 @@ class SessionView:
                 if region.intersects(r):
                     results.append((diag, region))
             if results:
-                results = sorted(results, key=lambda d: d[0].get('severity', ''))
+                results = sorted(results, key=lambda d: d[0].get('severity', 1))
                 diag, region = results[0]
-                scope = DIAGNOSTIC_SEVERITY[diag.get('severity', '') - 1][2]
+                scope = DIAGNOSTIC_SEVERITY[diag.get('severity', 1) - 1][2]
                 icon = ""
                 flags = sublime.DRAW_NO_FILL | sublime.DRAW_NO_OUTLINE
                 annotations = [format_diagnostic_for_annotation(diag)]
